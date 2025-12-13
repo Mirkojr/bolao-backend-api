@@ -1,17 +1,29 @@
 import express from 'express';
 import 'dotenv/config';
 import sequelize from './config/database.js';
+import router from './routes/routes.js'
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(router);
 
 app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const startServer = async () => {
+  try{
+    await sequelize.authenticate();
+    console.log('Conexão com o banco de dados foi um sucesso');
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    });
+  } catch(error){
+    console.error('Não foi possível se conectar ao banco de dados: ', error);
+  }
+}
+
+startServer();
