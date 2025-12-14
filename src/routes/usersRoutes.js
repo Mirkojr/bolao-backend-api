@@ -3,22 +3,28 @@ import { User } from '../models/index.js';
 
 const router = express.Router();
 
-
+// retornar todos os usuários
 router.get('/', async (req, res) => {
     const users = await User.findAll();
     res.json(users);
 });
 
+// criar um novo usuário
 router.post('/', async (req, res) => {
     try{
-        const newUser = await User.create(req.body);
+        const newUser = await User.create({
+            nome : req.body.nome,
+            email : req.body.email,
+            senha_hash : req.body.senha
+        });
         res.status(201).json(newUser.id)
     } catch(error){
-         res.status(400).json("Inserção de usuário falhou.")
+         res.status(400).json({message : "Inserção de usuário falhou."})
     }
 
 });
 
+// retornar um usuário pelo id
 router.get('/:id', async (req, res) => {
     try{
         const user = await User.findByPk(req.params.id);
@@ -28,6 +34,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// atualizar um usuário pelo id
 router.put('/:id', async (req, res) => { 
     try{
         await User.update(req.body,{ where: { id : req.params.id } });
@@ -37,6 +44,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// apagar um usuário pelo id
 router.delete('/:id', async (req, res) => { 
     try{
         await User.destroy({ where: { id : req.params.id } });

@@ -1,11 +1,15 @@
 import express from 'express';
 import { Bolao } from '../models/index.js';
+import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     try {
-        const novoBolao = await Bolao.create(req.body);
+        const novoBolao = await Bolao.create({
+            nome: req.body.nome,
+            criador_id: req.userId
+        });
         res.status(201).json(novoBolao);
     } catch (error) {
         res.status(400).json({ message: "Falha ao criar Bolão.", error: error.message });
@@ -13,9 +17,18 @@ router.post('/', async (req, res) => {
 });
 
 
-router.get('/', async (req, res) => {
-    const boloes = await Bolao.findAll();
-    res.json(boloes);
+router.get('/', authMiddleware, async (req, res) => {
+    try{
+        const criador_id = req.userId;
+        const boloes_do_usuario = await Bolao.findAll({
+        where: {
+            criador_id : criador_id
+        }
+        });
+        res.status(200).json(boloes_do_usuario);
+    } catch(error){
+        console.error(error);
+        res.status(500).json({ message: 'Erro ao buscar os bolões do usuário.' });    }
 });
 
 
