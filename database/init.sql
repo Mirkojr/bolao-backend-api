@@ -50,6 +50,12 @@ CREATE TABLE participantes_bolao (
   PRIMARY KEY (bolao_id, user_id)
 );
 
+CREATE TABLE bolao_jogos (
+  bolao_id integer NOT NULL REFERENCES boloes(id) ON DELETE CASCADE,
+  jogo_id integer NOT NULL REFERENCES jogos(id) ON DELETE CASCADE,
+  PRIMARY KEY (bolao_id, jogo_id)
+);
+
 CREATE UNIQUE INDEX ON palpites (bolao_id, user_id, jogo_id);
 
 COMMENT ON COLUMN users.pontuacao_total IS 'Soma de todos os pontos ganhos';
