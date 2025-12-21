@@ -7,15 +7,19 @@ export default {
             const participantes = await Participante.findAll({
                 where: { bolao_id: req.params.id },
                 include: [{
-                    model: User,
+                    model: User, // Join pra pegar o nome do usuário
                     attributes: ['nome'] 
                 }]
             });
 
-            const formatados = participantes.map(p => ({
-                ...p.toJSON(),
-                nome: p.User?.nome 
-            }));
+            // Formata a resposta para incluir o nome do usuário no participante 
+            const formatados = participantes.map(p => {
+                const { User, ...dados } = p.toJSON(); 
+                return {
+                    ...dados,
+                    nome: User?.nome || 'Sem Nome'
+                };
+            })
 
             return res.status(200).json(formatados);
         } catch (error) {

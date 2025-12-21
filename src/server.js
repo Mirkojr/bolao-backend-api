@@ -1,8 +1,9 @@
 import express from 'express';
-import 'dotenv/config';
 import sequelize from './config/database.js';
 import router from './routes/routes.js'
 import cors from 'cors';
+import User from './models/User.js';
+import 'dotenv/config';
 
 const app = express();
 
@@ -15,12 +16,29 @@ app.use(router);
 await sequelize.sync({ alter: true });
 
 app.get('/', (req, res) => {
-  res.send('Hello, World!');
+  res.send('Voce está na API do Bolão!');
 });
 
 const startServer = async () => {
   try{
     await sequelize.authenticate();
+
+    const adminName = process.env.ADMIN_NAME;
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASS;
+
+    // Verifica se o usuário admin já existe, se não, cria um novo
+    const adminExists = await User.findOne({ where: { role: 'ADMIN' } });
+    if (!adminExists) {
+      await User.create({
+        nome: adminName,
+        email: adminEmail,
+        senha_hash: adminPassword,
+        role: 'ADMIN'
+      });
+      console.log('Usuário Admin padrão criado com sucesso!');
+    }
+
     console.log('Conexão com o banco de dados foi um sucesso');
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor rodando na porta ${PORT}`);

@@ -4,6 +4,7 @@ export default {
     // GET /:id/palpites
     async index(req, res) {
         try {
+            // Buscar todos os palpites para o bolão especificado
             const palpites = await Palpite.findAll({
                 where: { bolao_id: req.params.id }
             });
@@ -27,7 +28,6 @@ export default {
             // Caso contrário, o usuário está palpitando para si mesmo.
             const final_user_id = target_user_id || usuarioLogadoId;
 
-            // --- VALIDAÇÃO DE SEGURANÇA ---
             // Bloqueia se: Não for o próprio usuário E não for Admin
             if (Number(final_user_id) !== Number(usuarioLogadoId) && usuarioLogadoRole !== 'ADMIN') {
                 return res.status(403).json({ 

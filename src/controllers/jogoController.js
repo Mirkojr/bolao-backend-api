@@ -31,8 +31,16 @@ export default {
 
             const { timeA, timeB, data_jogo } = req.body;
 
+            if (!timeA || !timeB) {
+                return res.status(400).json({ 
+                    message: "Os nomes dos times A e B são obrigatórios." 
+                });
+            }
+
             const buscaOuCriaTime = async (nomeTime) => {
                 // Tenta achar o time pelo NOME exato
+                if (!nomeTime) throw new Error("Nome do time não fornecido");
+
                 let time = await Time.findOne({ where: { nome: nomeTime } });
                 
                 // Se achou, retorna ele e acabou.
@@ -76,5 +84,26 @@ export default {
             console.error(error);
             return res.status(400).json({ message: "Erro ao adicionar jogo.", error: error.message });
         }
+    },
+
+// PUT /:id/jogos/:jogoId
+    async update(req, res) {
+        try {
+            const { jogoId } = req.params;
+            const { gol_a_real, gol_b_real } = req.body;
+            const jogo = await Jogo.findByPk(jogoId);
+
+            if (!jogo) {
+                return res.status(404).json({ message: "Jogo não encontrado." });
+            }
+
+            jogo.gol_a_real = gol_a_real;
+            jogo.gol_b_real = gol_b_real;
+            jogo.status = 'FINALIZADO';
+            await jogo.save();
+            return res.status(200).json(jogo);
+        } catch (error) {
+            return res.status(400).json({ message: "Erro ao atualizar jogo.", error: error.message });
+        }   
     }
 };
