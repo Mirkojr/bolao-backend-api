@@ -23,11 +23,29 @@ const Palpite = sequelize.define('Palpite', {
   gol_a_palpite: {
     type: DataTypes.INTEGER,
     allowNull: false,
-  },
-  gol_b_palpite: {
+    validate: {
+        min: {
+        args: [0],
+        msg: "O placar do time A não pode ser negativo."
+        },
+        isInt: {
+        msg: "O placar deve ser um número inteiro."
+        }
+    }
+    },
+    gol_b_palpite: {
     type: DataTypes.INTEGER,
     allowNull: false,
-  },
+    validate: {
+        min: {
+        args: [0],
+        msg: "O placar do time B não pode ser negativo."
+        },
+        isInt: {
+        msg: "O placar deve ser um número inteiro."
+        }
+    }
+    },
   pontos_ganhos: {
     type: DataTypes.INTEGER,
     defaultValue: 0,

@@ -87,3 +87,14 @@ ALTER TABLE participantes_bolao ADD FOREIGN KEY (user_id) REFERENCES users (id);
 ALTER TABLE participantes_bolao ADD FOREIGN KEY (bolao_id) REFERENCES boloes (id);
 
 ALTER TABLE palpites ADD FOREIGN KEY (bolao_id) REFERENCES boloes (id);
+
+ALTER TABLE users ADD COLUMN role varchar DEFAULT 'USER';
+
+
+ALTER TABLE palpites 
+ADD CONSTRAINT check_gol_a_negativo CHECK (gol_a_palpite >= 0),
+ADD CONSTRAINT check_gol_b_negativo CHECK (gol_b_palpite >= 0);
+
+ALTER TABLE jogos
+ADD CONSTRAINT check_gol_a_negativo CHECK (gol_a_real >= 0),
+ADD CONSTRAINT check_gol_b_negativo CHECK (gol_b_real >= 0);

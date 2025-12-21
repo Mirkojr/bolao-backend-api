@@ -22,7 +22,10 @@ export default {
             }
 
             const token = jwt.sign(
-                { id: user.id },
+                { 
+                    id: user.id,
+                    role: user.role
+                },
                 SECRET,
                 { expiresIn: '1h' }
             );

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 const SECRET = process.env.ACCESS_TOKEN_KEY || 'CHAVE_SECRETA_DEFAULT';
 
-const authMiddleware = (req, res, next) => {
+export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if(!authHeader || !authHeader.startsWith('Bearer ')){
@@ -14,11 +14,20 @@ const authMiddleware = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, SECRET);
         req.userId = decoded.id;
-
+        req.userRole = decoded.role;
         next();
     } catch(error){
         return res.status(401).json({ message: 'Acesso negado: Token inválido ou expirado.'});
     }
 }
 
-export default authMiddleware;
+export const adminOnly = (req, res, next) => {
+    if (req.userRole !== 'ADMIN') {
+        return res.status(403).json({ 
+            message: 'Acesso negado: Esta operação é exclusiva para administradores.' 
+        });
+    }
+    next();
+};
+
+export default {authMiddleware, adminOnly};

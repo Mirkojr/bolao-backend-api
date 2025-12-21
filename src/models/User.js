@@ -21,6 +21,11 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false,
         },
+    role: {
+        type: DataTypes.STRING,
+        defaultValue: 'USER', 
+        allowNull: false
+    },
     pontuacao_total: {
         type: DataTypes.INTEGER,
         defaultValue: 0
