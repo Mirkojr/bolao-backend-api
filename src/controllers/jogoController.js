@@ -4,22 +4,32 @@ export default {
     
     // GET /:id/jogos
     async index(req, res) {
-       try {
-            const bolao = await Bolao.findByPk(req.params.id, {
+        try {
+            const { id } = req.params;
+
+            const bolao = await Bolao.findByPk(id, {
                 include: [{
                     model: Jogo,
-                    through: { attributes: [] },
+                    as: 'jogos', 
                     include: [
-                        { model: Time, as: 'timeA' },
+                        { model: Time, as: 'timeA' }, 
                         { model: Time, as: 'timeB' }
                     ]
                 }]
             });
-            
-            if (!bolao) return res.status(404).json({ message: "Bolão não encontrado" });
-            return res.status(200).json(bolao.Jogos);
+
+            if (!bolao) {
+                return res.status(404).json({ message: "Bolão não encontrado" });
+            }
+
+            return res.json(bolao.jogos || []);
+
         } catch (error) {
-            return res.status(500).json({ message: "Erro ao buscar jogos.", error: error.message });
+            console.error(error);
+            return res.status(500).json({ 
+                message: "Erro ao buscar jogos.", 
+                error: error.message 
+            });
         }
     },
 

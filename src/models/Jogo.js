@@ -1,6 +1,5 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
-import Time from './Time.js';
 
 const Jogo = sequelize.define('Jogo', {
     id: {
@@ -23,7 +22,7 @@ const Jogo = sequelize.define('Jogo', {
     },
     gol_a_real: {
         type: DataTypes.INTEGER,
-        allowNull: true, // Pode ser nulo antes do jogo
+        allowNull: true,
         validate: {
             min: 0
         }
@@ -38,6 +37,12 @@ const Jogo = sequelize.define('Jogo', {
     status: {
         type: DataTypes.STRING,
         defaultValue: 'AGENDADO',
+        validate: {
+            isIn: {
+                args: [['AGENDADO', 'EM_ANDAMENTO', 'FINALIZADO']],
+                msg: "O status deve ser AGENDADO, EM_ANDAMENTO ou FINALIZADO"
+            }
+        }
     },
 }, {
     tableName: 'jogos',

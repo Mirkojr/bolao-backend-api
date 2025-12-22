@@ -11,6 +11,11 @@ const Bolao = sequelize.define('Bolao', {
   nome: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      notEmpty: {
+        msg: "O nome do bolão é obrigatório."
+      }
+    }
   },
   criador_id: {
     type: DataTypes.INTEGER,

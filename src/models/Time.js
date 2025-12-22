@@ -16,10 +16,18 @@ const Time = sequelize.define('Time', {
         type: DataTypes.STRING(3),
         unique: true,
         allowNull: false,
+        validate: {
+            len: [2, 3] 
+        }
     },
     escudo_url: {
         type: DataTypes.STRING,
         allowNull: true,
+        validate: {
+            isUrl: {
+                msg: "O campo escudo deve ser uma URL válida."
+            }
+        }
     },
 }, {
     tableName: 'times',

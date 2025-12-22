@@ -8,18 +8,21 @@ export default {
                 where: { bolao_id: req.params.id },
                 include: [{
                     model: User, // Join pra pegar o nome do usuário
-                    attributes: ['nome'] 
+                    as: 'usuario',
+                    attributes: ['nome', 'email', 'id'] 
                 }]
             });
 
-            // Formata a resposta para incluir o nome do usuário no participante 
             const formatados = participantes.map(p => {
-                const { User, ...dados } = p.toJSON(); 
+                const dados = p.toJSON();
+                const nomeExibicao = dados.usuario?.nome || dados.nome_avulso || "Participante Anônimo";
                 return {
                     ...dados,
-                    nome: User?.nome || 'Sem Nome'
+                    nome: nomeExibicao,
+                    // flagzinha pra dizer se é usuário registrado ou avulso
+                    tipo: dados.usuario ? 'REGISTRADO' : 'AVULSO'
                 };
-            })
+            });
 
             return res.status(200).json(formatados);
         } catch (error) {
@@ -32,34 +35,55 @@ export default {
         try {
             const { nome } = req.body;
             const bolaoId = req.params.id;
+            const userId = req.params.user_id;
+
+            if(!nome) return res.status(400).json({ message: "O nome do participante é obrigatório." });
 
             const bolao = await Bolao.findByPk(bolaoId);
+            
             if (!bolao) return res.status(404).json({ message: "Bolão não encontrado" });
 
-            const usuarioEncontrado = await User.findOne({ where: { nome: nome } });
-            if (!usuarioEncontrado) {
-                return res.status(404).json({ message: "Usuário não encontrado." });
+            let usuarioRegistrado = null;
+
+            if (userId && userId !== 'undefined' && userId !== 'null') {
+                usuarioRegistrado = await User.findByPk(userId);
             }
 
-            const jaParticipa = await Participante.findOne({
-                where: { bolao_id: bolaoId, user_id: usuarioEncontrado.id }
-            });
+            if(usuarioRegistrado) {   
+                
+                const jaParticipa = await Participante.findOne({
+                    where: { bolao_id: bolaoId, user_id: usuarioRegistrado.id }
+                });
 
-            if (jaParticipa) {
-                return res.status(400).json({ message: "Esse usuário já está no bolão!" });
+                if (jaParticipa) {
+                    return res.status(400).json({ message: `O usuário ${nome} já está neste bolão` });
+                }
+
+                const novoParticipante = await Participante.create({
+                    bolao_id: bolaoId,
+                    user_id: usuarioRegistrado.id,
+                    nome_avulso: null,
+                    pontuacao_no_bolao: 0
+                });
+                return res.status(201).json(novoParticipante);
+            } else {
+
+                const jaParticipaAvulso = await Participante.findOne({
+                    where: { bolao_id: bolaoId, nome_avulso: nome }
+                });
+
+                if (jaParticipaAvulso) {
+                    return res.status(400).json({ message: `Já existe um convidado chamado ${nome} neste bolão!` });
+                }
+
+                const novoParticipanteAvulso = await Participante.create({
+                    bolao_id: bolaoId,
+                    user_id: null,
+                    nome_avulso: nome,
+                    pontuacao_no_bolao: 0
+                });
+                return res.status(201).json(novoParticipanteAvulso);
             }
-
-            const novoParticipante = await Participante.create({
-                bolao_id: bolaoId,
-                user_id: usuarioEncontrado.id,
-                pontuacao_no_bolao: 0
-            });
-            const resultado = {
-                ...novoParticipante.toJSON(),
-                nome: usuarioEncontrado.nome 
-            };
-
-            return res.status(201).json(resultado);
         } catch (error) {
             return res.status(400).json({ message: "Erro ao adicionar participante.", error: error.message });
         }
