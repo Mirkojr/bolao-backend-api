@@ -87,5 +87,25 @@ export default {
         } catch (error) {
             return res.status(400).json({ message: "Erro ao adicionar participante.", error: error.message });
         }
+    },
+
+    async delete (req, res) {
+        try{
+            const { participanteId } = req.params;
+
+
+            const deletado = await Participante.destroy({ where: { id: participanteId}});
+
+            if(deletado === 0){
+                res.status(404).json({ message: "Participante não encontrado. "});
+            }
+
+            return res.status(204).send();
+        } catch (error){
+            console.error("Erro ao deletar participante:", error);
+            return res.status(400).json({ 
+                message: "Erro ao remover participante.", 
+                error: error.message });
+        }
     }
 };

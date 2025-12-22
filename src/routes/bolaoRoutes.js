@@ -23,9 +23,11 @@ router.post('/:id/jogos', authMiddleware, adminOnly, GameController.store);
 // Rotas de Participantes
 router.get('/:id/participantes', authMiddleware, adminOnly, ParticipantController.index);
 router.post('/:id/participantes', authMiddleware, adminOnly, ParticipantController.store);
+router.delete('/:id/participantes', authMiddleware, adminOnly, ParticipantController.delete);
 
 // Rotas de Palpites
 router.get('/:id/palpites', authMiddleware, adminOnly, PalpiteController.index);
 router.post('/:id/palpites', authMiddleware, adminOnly, PalpiteController.store);
+router.delete('/:id/palpites', authMiddleware, adminOnly, PalpiteController.delete);
 
 export default router;

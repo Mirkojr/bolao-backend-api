@@ -5,15 +5,6 @@ import Jogo from './Jogo.js';
 import Palpite from './Palpite.js';
 import Time from './Time.js';
 
-// Relação do usuáro com o bolão
-User.hasMany(Bolao, { 
-    foreignKey: 'criador_id', 
-    as: 'boloesCriados' 
-});
-Bolao.belongsTo(User, { 
-    foreignKey: 'criador_id', 
-    as: 'criador' 
-});
 
 // Relação do bolão para o jogo, N por N
 Bolao.belongsToMany(Jogo, { 
@@ -29,43 +20,22 @@ Jogo.belongsToMany(Bolao, {
     as: 'boloes'
 });
 
-// Relação de jogos e time
+User.hasMany(Bolao, { foreignKey: 'criador_id', as: 'boloesCriados' });
+Bolao.belongsTo(User, { foreignKey: 'criador_id', as: 'criador' });
+
 Jogo.belongsTo(Time, { foreignKey: 'time_a_id', as: 'timeA' });
 Jogo.belongsTo(Time, { foreignKey: 'time_b_id', as: 'timeB' });
 
-// Um Bolão tem várias linhas de participação (seja user ou avulso)
-Bolao.hasMany(Participante, { 
-    foreignKey: 'bolao_id', 
-    as: 'participantes' 
-});
-Participante.belongsTo(Bolao, { 
-    foreignKey: 'bolao_id', 
-    as: 'bolao' 
-});
+Bolao.hasMany(Participante, { foreignKey: 'bolao_id', as: 'participantes' });
 
+Participante.belongsTo(Bolao, { foreignKey: 'bolao_id', as: 'bolao' });
+Participante.belongsTo(User, { foreignKey: 'user_id', as: 'usuario' });
 
-// Um Participante PODE ser um User (se user_id não for null)
-Participante.belongsTo(User, { 
-    foreignKey: 'user_id', 
-    as: 'usuario' 
-});
-// Um User pode ter várias participações em bolões diferentes
-User.hasMany(Participante, { 
-    foreignKey: 'user_id', 
-    as: 'participacoes' 
-});
+User.hasMany(Participante, { foreignKey: 'user_id', as: 'participacoes' });
 
-// O Palpite pertence ao Participante
-Participante.hasMany(Palpite, { 
-    foreignKey: 'participante_id', 
-    as: 'palpites' 
-});
-Palpite.belongsTo(Participante, { 
-    foreignKey: 'participante_id', 
-    as: 'participante' 
-});
+Participante.hasMany(Palpite, { foreignKey: 'participante_id', as: 'palpites' });
 
-// O Palpite também pertence a um Jogo e um Bolão 
+Palpite.belongsTo(Participante, { foreignKey: 'participante_id', as: 'participante' });
 Palpite.belongsTo(Jogo, { foreignKey: 'jogo_id', as: 'jogo' });
 Palpite.belongsTo(Bolao, { foreignKey: 'bolao_id', as: 'bolao' });
 

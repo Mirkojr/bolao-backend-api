@@ -4,11 +4,11 @@ export default {
    
     async index(req, res) {
         try {
-            const { id } = req.params; // ID do Bolão
+            const { id } = req.params; 
 
             const palpites = await Palpite.findAll({
                 where: { bolao_id: id },
-                attributes: ['id', 'gol_a_palpite', 'gol_b_palpite', 'jogo_id', 'participante_id']
+                attributes: ['gol_a_palpite', 'gol_b_palpite', 'jogo_id', 'participante_id', 'pontos_ganhos']
             });
 
             return res.json(palpites);
@@ -35,32 +35,45 @@ export default {
                 return res.status(404).json({ message: "Participante não encontrado neste bolão." });
             }
 
-            const [palpite, created] = await Palpite.findOrCreate({
-                where: {
-                    bolao_id: id,
-                    participante_id: participante_id, 
-                    jogo_id: jogo_id
-                },
-                defaults: {
-                    gol_a_palpite: Number(gol_a_palpite),
-                    gol_b_palpite: Number(gol_b_palpite)
-                }
+            const [palpite, created] = await Palpite.upsert({
+                bolao_id: id,
+                participante_id: participante_id,
+                jogo_id: jogo_id,
+                gol_a_palpite: Number(gol_a_palpite),
+                gol_b_palpite: Number(gol_b_palpite),
+                data_palpite: new Date() 
             });
 
-            if (!created) {
-                palpite.gol_a_palpite = Number(gol_a_palpite);
-                palpite.gol_b_palpite = Number(gol_b_palpite);
-                await palpite.save();
-            }
-
-            return res.json(palpite);
+            return res.status(created ? 201 : 200).json(palpite);
 
         } catch (error) {
             console.error("Erro ao salvar palpite:", error);
-            return res.status(500).json({ 
-                message: "Erro interno ao salvar palpite.", 
-                error: error.message 
+            return res.status(500).json({ message: "Erro interno ao salvar palpite.", error: error.message });
+        }
+    },
+
+    async delete(req, res) {
+        try {
+            const { id } = req.params; // ID do Bolão
+            const { participante_id, jogo_id } = req.body;
+
+            const deletado = await Palpite.destroy({
+                where: { 
+                    bolao_id: id,
+                    participante_id: participante_id,
+                    jogo_id: jogo_id
+                }
             });
+
+            if (deletado === 0) {
+                return res.status(404).json({ message: "Palpite não encontrado." });
+            }
+
+            return res.status(200).json({ message: "Palpite deletado com sucesso." });
+        } catch (error) {
+            console.error("Erro ao deletar palpite:", error);
+            return res.status(500).json({ message: "Erro ao deletar palpite.", error: error.message });
         }
     }
+
 };
