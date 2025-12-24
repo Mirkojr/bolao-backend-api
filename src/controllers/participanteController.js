@@ -91,10 +91,11 @@ export default {
 
     async delete (req, res) {
         try{
-            const { participanteId } = req.params;
+            const { id, participanteId } = req.params;
 
-
-            const deletado = await Participante.destroy({ where: { id: participanteId}});
+            const deletado = await Participante.destroy({ 
+                where: { id: participanteId }
+            });
 
             if(deletado === 0){
                 res.status(404).json({ message: "Participante não encontrado. "});

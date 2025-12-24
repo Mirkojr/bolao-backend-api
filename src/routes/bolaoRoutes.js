@@ -22,7 +22,7 @@ router.post('/:id/jogos', GameController.store);
 // Rotas de Participantes
 router.get('/:id/participantes', ParticipantController.index);
 router.post('/:id/participantes', ParticipantController.store);
-router.delete('/:id/participantes', ParticipantController.delete);
+router.delete('/:id/participantes/:participanteId', ParticipantController.delete);
 
 // Rotas de Palpites
 router.get('/:id/palpites', PalpiteController.index);
