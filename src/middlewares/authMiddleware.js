@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const SECRET = process.env.ACCESS_TOKEN_KEY || 'CHAVE_SECRETA_DEFAULT';
+const SECRET = process.env.ACCESS_TOKEN_KEY;
 
 export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -17,6 +17,7 @@ export const authMiddleware = (req, res, next) => {
         req.userRole = decoded.role;
         next();
     } catch(error){
+        console.error("Erro no JWT:", error.message);
         return res.status(401).json({ message: 'Acesso negado: Token inválido ou expirado.'});
     }
 }

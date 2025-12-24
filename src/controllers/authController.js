@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
 
-// Idealmente, isso estaria num arquivo de config, mas funciona aqui
-const SECRET = process.env.ACCESS_TOKEN_KEY || 'CHAVE_SECRETA_DEFAULT';
+const SECRET = process.env.ACCESS_TOKEN_KEY;
 
 export default {
     async login(req, res) {
@@ -30,10 +29,9 @@ export default {
                 { expiresIn: '1h' }
             );
 
-            return res.status(200).json({ token: token });
+            return res.status(200).json({ user: user, token: token });
 
         } catch (error) {
-            console.error(error);
             return res.status(500).json({ message: 'Erro interno do servidor.' });
         }
     },
