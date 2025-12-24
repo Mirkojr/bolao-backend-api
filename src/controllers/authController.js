@@ -29,7 +29,14 @@ export default {
                 { expiresIn: '1h' }
             );
 
-            return res.status(200).json({ user: user, token: token });
+            const userToSend = {
+                id: user.id,
+                nome: user.nome,
+                pontuacao_total: user.pontuacao_total,
+                role: user.role,
+            }
+            
+            return res.status(200).json({ user: userToSend, token: token });
 
         } catch (error) {
             return res.status(500).json({ message: 'Erro interno do servidor.' });
