@@ -2,23 +2,20 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
 const Palpite = sequelize.define('Palpite', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    allowNull: false,
-  },
   bolao_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    primaryKey: true,
   },
   participante_id: {
     type: DataTypes.INTEGER,
-    allowNull: false, 
+    allowNull: false,
+    primaryKey: true,
   },
   jogo_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    primaryKey: true,
   },
   gol_a_palpite: {
     type: DataTypes.INTEGER,
