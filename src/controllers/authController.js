@@ -30,7 +30,14 @@ export default {
                 { expiresIn: '1h' }
             );
 
-            return res.status(200).json({ token: token });
+            const userToSave = {
+                id: String(user.id),
+                nome: user.nome,
+                pontuacao_total: user.pontuacao_total,
+                role: user.role,
+            };
+
+            return res.status(200).json({ user: userToSave, token: token });
 
         } catch (error) {
             console.error(error);
