@@ -7,20 +7,18 @@ export default {
             const participantes = await Participante.findAll({
                 where: { bolao_id: req.params.id },
                 include: [{
-                    model: User, // Join pra pegar o nome do usuário
-                    as: 'usuario',
-                    attributes: ['nome', 'email', 'id'] 
-                }]
+                model: User,
+                as: 'usuario'
+            }],
+            order: [['pontuacao_no_bolao', 'DESC']]
             });
 
             const formatados = participantes.map(p => {
                 const dados = p.toJSON();
-                const nomeExibicao = dados.usuario?.nome || dados.nome_avulso || "Participante Anônimo";
+                const nomeExibicao =  dados.nome_avulso || "Participante Anônimo";
                 return {
                     ...dados,
                     nome: nomeExibicao,
-                    // flagzinha pra dizer se é usuário registrado ou avulso
-                    tipo: dados.usuario ? 'REGISTRADO' : 'AVULSO'
                 };
             });
 
@@ -62,7 +60,7 @@ export default {
                 const novoParticipante = await Participante.create({
                     bolao_id: bolaoId,
                     user_id: usuarioRegistrado.id,
-                    nome_avulso: null,
+                    nome_avulso: usuarioRegistrado.nome,
                     pontuacao_no_bolao: 0
                 });
                 return res.status(201).json(novoParticipante);

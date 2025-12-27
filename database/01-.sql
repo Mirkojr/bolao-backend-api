@@ -44,6 +44,7 @@ CREATE TABLE participantes_bolao (
   user_id integer REFERENCES users(id),
   nome_avulso varchar,
   pontuacao_no_bolao integer DEFAULT 0,
+  total_wins, integer DEFAULT 0,
   data_entrada timestamp DEFAULT (now())
 );
 

@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
-
-// Idealmente, isso estaria num arquivo de config, mas funciona aqui
-const SECRET = process.env.ACCESS_TOKEN_KEY || 'CHAVE_SECRETA_DEFAULT';
+import { SECRET } from '../config/auth.js';
 
 export default {
     async login(req, res) {

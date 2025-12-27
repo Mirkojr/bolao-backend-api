@@ -1,8 +1,26 @@
 import { Bolao, Jogo, Time } from '../models/index.js';
+import { RankingController } from './rankingController.js';
 
 export default {
     
-    // GET /:id/jogos
+    // GET /jogos
+    async all(req, res) {
+        try {
+            const jogos = await Jogo.findAll({
+                order: [['data_jogo', 'ASC']] 
+            });
+            
+            return res.json(jogos);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                message: "Erro ao buscar jogos",
+                error: error.message
+            })
+        }
+    },
+
+    // GET /:bolaoId/jogos
     async index(req, res) {
         try {
             const { id } = req.params;
@@ -110,8 +128,15 @@ export default {
             jogo.gol_a_real = gol_a_real;
             jogo.gol_b_real = gol_b_real;
             jogo.status = 'FINALIZADO';
+
             await jogo.save();
-            return res.status(200).json(jogo);
+
+            await RankingController.calcularPontuacaoJogo(jogo.id, gol_a_real, gol_b_real);
+
+            return res.status(200).json({
+                message: "Jogo atualizado com sucesso.",
+                jogo: jogo
+            });
         } catch (error) {
             return res.status(400).json({ message: "Erro ao atualizar jogo.", error: error.message });
         }   

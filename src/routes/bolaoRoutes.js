@@ -19,11 +19,12 @@ router.delete('/:id', authMiddleware, adminOnly, BolaoController.delete);
 // Rotas de Jogos no Bolão
 router.get('/:id/jogos', authMiddleware, adminOnly, GameController.index);
 router.post('/:id/jogos', authMiddleware, adminOnly, GameController.store);
+router.post('/:id/jogos/:jogoId', authMiddleware, adminOnly, GameController.update);
 
 // Rotas de Participantes
 router.get('/:id/participantes', authMiddleware, adminOnly, ParticipantController.index);
 router.post('/:id/participantes', authMiddleware, adminOnly, ParticipantController.store);
-router.delete('/:id/participantes', authMiddleware, adminOnly, ParticipantController.delete);
+router.delete('/:id/participantes/:participanteId', authMiddleware, adminOnly, ParticipantController.delete);
 
 // Rotas de Palpites
 router.get('/:id/palpites', authMiddleware, adminOnly, PalpiteController.index);

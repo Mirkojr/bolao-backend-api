@@ -1,4 +1,5 @@
 import { Palpite, Participante, Jogo } from '../models/index.js';
+import { RankingController } from './rankingController.js';
 
 export default {
    
@@ -27,6 +28,7 @@ export default {
                 return res.status(400).json({ message: "Participante e Jogo são obrigatórios." });
             }
 
+            // Busca o Participante
             const participante = await Participante.findOne({
                 where: { id: participante_id, bolao_id: id }
             });
@@ -35,6 +37,13 @@ export default {
                 return res.status(404).json({ message: "Participante não encontrado neste bolão." });
             }
 
+            // Busca o Jogo para conferir o status
+            const jogo = await Jogo.findByPk(jogo_id);
+            if (!jogo) {
+                return res.status(404).json({ message: "Jogo não encontrado." });
+            }
+
+            // Salva o palpite (Upsert)
             const [palpite, created] = await Palpite.upsert({
                 bolao_id: id,
                 participante_id: participante_id,
@@ -43,6 +52,12 @@ export default {
                 gol_b_palpite: Number(gol_b_palpite),
                 data_palpite: new Date() 
             });
+
+            // Se o jogo já foi finalizado, atualiza a pontuação do participante
+            if (jogo.status === 'FINALIZADO') {
+                console.log("Inserindo palpite em jogo finalizado. Calculando pontos...");
+                await RankingService.processarPalpiteIndividual(palpite, jogo);
+            }
 
             return res.status(created ? 201 : 200).json(palpite);
 
