@@ -7,7 +7,7 @@ export default {
     async all(req, res) {
         try {
             const jogos = await Jogo.findAll({
-                order: [['data_jogo', 'ASC']] 
+                order: [['data_jogo', 'ASC']] ,
             });
             
             return res.json(jogos);
@@ -33,7 +33,11 @@ export default {
                         { model: Time, as: 'timeA' }, 
                         { model: Time, as: 'timeB' }
                     ]
-                }]
+                }], 
+                order: [
+                    [{ model: Jogo, as: 'jogos' }, 'data_jogo', 'ASC'], 
+                    [{ model: Jogo, as: 'jogos' }, 'id', 'ASC']
+                ]
             });
 
             if (!bolao) {
@@ -140,5 +144,16 @@ export default {
         } catch (error) {
             return res.status(400).json({ message: "Erro ao atualizar jogo.", error: error.message });
         }   
+    },
+
+    async delete(req, res) {
+        try {   
+            await Jogo.destroy({ where : {
+                id : req.params.id 
+            }})
+            res.status(204).send();
+        } catch (error) {
+            return res.status(500).json({message: "Erro ao deletar jogo"})
+        }
     }
 };

@@ -56,7 +56,7 @@ export default {
             // Se o jogo já foi finalizado, atualiza a pontuação do participante
             if (jogo.status === 'FINALIZADO') {
                 console.log("Inserindo palpite em jogo finalizado. Calculando pontos...");
-                await RankingService.processarPalpiteIndividual(palpite, jogo);
+                await RankingController.processarPalpiteIndividual(palpite, jogo);
             }
 
             return res.status(created ? 201 : 200).json(palpite);
