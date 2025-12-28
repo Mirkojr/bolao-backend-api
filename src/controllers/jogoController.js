@@ -1,102 +1,39 @@
-import { Bolao, Jogo, Time } from '../models/index.js';
+import { Jogo, Time } from '../models/index.js';
 import { RankingController } from './rankingController.js';
 
 export default {
-    
-    // GET /jogos
-    async all(req, res) {
+
+    // LISTAR TODOS OS JOGOS GLOBAIS
+    async index(req, res) {
         try {
             const jogos = await Jogo.findAll({
-                order: [['data_jogo', 'ASC']] ,
+                include: [
+                    { model: Time, as: 'timeA' },
+                    { model: Time, as: 'timeB' }
+                ],
+                order: [['data_jogo', 'ASC']],
             });
-            
             return res.json(jogos);
         } catch (error) {
             console.error(error);
-            res.status(500).json({
-                message: "Erro ao buscar jogos",
-                error: error.message
-            })
+            res.status(500).json({ message: "Erro ao buscar jogos", error: error.message });
         }
     },
 
-    // GET /:bolaoId/jogos
-    async index(req, res) {
-        try {
-            const { id } = req.params;
-
-            const bolao = await Bolao.findByPk(id, {
-                include: [{
-                    model: Jogo,
-                    as: 'jogos', 
-                    include: [
-                        { model: Time, as: 'timeA' }, 
-                        { model: Time, as: 'timeB' }
-                    ]
-                }], 
-                order: [
-                    [{ model: Jogo, as: 'jogos' }, 'data_jogo', 'ASC'], 
-                    [{ model: Jogo, as: 'jogos' }, 'id', 'ASC']
-                ]
-            });
-
-            if (!bolao) {
-                return res.status(404).json({ message: "Bolão não encontrado" });
-            }
-
-            return res.json(bolao.jogos || []);
-
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ 
-                message: "Erro ao buscar jogos.", 
-                error: error.message 
-            });
-        }
-    },
-
-    // POST /:id/jogos
+    // CRIAR UM NOVO JOGO GLOBAL (Admin)
     async store(req, res) {
         try {
-            const bolao = await Bolao.findByPk(req.params.id);
-            if (!bolao) return res.status(404).json({ message: "Bolão não encontrado" });
-
             const { timeA, timeB, data_jogo } = req.body;
 
-            if (!timeA || !timeB) {
-                return res.status(400).json({ 
-                    message: "Os nomes dos times A e B são obrigatórios." 
-                });
-            }
-
+            // Função auxiliar para achar ou criar time
             const buscaOuCriaTime = async (nomeTime) => {
-                // Tenta achar o time pelo NOME exato
-                if (!nomeTime) throw new Error("Nome do time não fornecido");
-
+                if (!nomeTime) throw new Error("Nome do time obrigatório");
                 let time = await Time.findOne({ where: { nome: nomeTime } });
-                
-                // Se achou, retorna ele e acabou.
                 if (time) return time;
-
-                // Se não achou, vamos criar. Primeiro geramos a sigla padrão.
-                let siglaGerada = nomeTime.substring(0, 3).toUpperCase();
                 
-                // Verificação: A sigla já existe?
-                // Enquanto existir um time com essa sigla, a gente muda a sigla.
-                let count = 0;
-                while (await Time.findOne({ where: { sigla: siglaGerada } })) {
-                    count++;
-                    // Estratégia: Pega as 2 primeiras letras e poe um numero. Ex: "SAO" -> "SA1", "SA2"
-                    siglaGerada = nomeTime.substring(0, 2).toUpperCase() + count;
-                }
-
-                time = await Time.create({
-                    nome: nomeTime,
-                    sigla: siglaGerada,
-                    escudo_url: null
-                });
-                
-                return time;
+                // Gera sigla simples (ex: "FLA")
+                let sigla = nomeTime.substring(0, 3).toUpperCase();
+                return await Time.create({ nome: nomeTime, sigla });
             };
 
             const timeObjA = await buscaOuCriaTime(timeA);
@@ -109,25 +46,20 @@ export default {
                 status: 'AGENDADO'
             });
 
-            await bolao.addJogo(novoJogo);
-
             return res.status(201).json(novoJogo);
         } catch (error) {
-            console.error(error);
-            return res.status(400).json({ message: "Erro ao adicionar jogo.", error: error.message });
+            return res.status(400).json({ message: "Erro ao criar jogo.", error: error.message });
         }
     },
 
-// PUT /:id/jogos/:jogoId
+    // ATUALIZAR PLACAR E FINALIZAR
     async update(req, res) {
         try {
-            const { jogoId } = req.params;
+            const { id } = req.params; // ID do Jogo
             const { gol_a_real, gol_b_real } = req.body;
-            const jogo = await Jogo.findByPk(jogoId);
-
-            if (!jogo) {
-                return res.status(404).json({ message: "Jogo não encontrado." });
-            }
+            
+            const jogo = await Jogo.findByPk(id);
+            if (!jogo) return res.status(404).json({ message: "Jogo não encontrado." });
 
             jogo.gol_a_real = gol_a_real;
             jogo.gol_b_real = gol_b_real;
@@ -135,25 +67,24 @@ export default {
 
             await jogo.save();
 
-            await RankingController.calcularPontuacaoJogo(jogo.id, gol_a_real, gol_b_real);
+            // Recalcula ranking se necessário
+            if(RankingController && RankingController.calcularPontuacaoJogo) {
+                await RankingController.calcularPontuacaoJogo(jogo.id, gol_a_real, gol_b_real);
+            }
 
-            return res.status(200).json({
-                message: "Jogo atualizado com sucesso.",
-                jogo: jogo
-            });
+            return res.status(200).json({ message: "Jogo atualizado.", jogo });
         } catch (error) {
             return res.status(400).json({ message: "Erro ao atualizar jogo.", error: error.message });
-        }   
+        }
     },
 
+    // DELETAR JOGO GLOBAL
     async delete(req, res) {
-        try {   
-            await Jogo.destroy({ where : {
-                id : req.params.id 
-            }})
+        try {
+            await Jogo.destroy({ where: { id: req.params.id } });
             res.status(204).send();
         } catch (error) {
-            return res.status(500).json({message: "Erro ao deletar jogo"})
+            return res.status(500).json({ message: "Erro ao deletar jogo" });
         }
     }
 };
