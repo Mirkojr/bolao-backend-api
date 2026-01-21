@@ -75,5 +75,6 @@ export const RankingController = {
             { pontuacao_no_bolao: totalPontos || 0 },
             { where: { id: palpite.participante_id } }
         );
-    }
+    },
+
 };

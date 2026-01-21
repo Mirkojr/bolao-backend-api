@@ -52,7 +52,7 @@ User.beforeSave(async (user) => {
     }
 });
 
-// Método de instância para verificar senha no login
+// Método para verificar senha no login
 User.prototype.validPassword = async function(password) {
     return await bcrypt.compare(password, this.senha_hash);
 };
