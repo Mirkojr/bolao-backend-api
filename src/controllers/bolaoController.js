@@ -92,7 +92,7 @@ export default {
             const bolao = await Bolao.findByPk(id);
             if (!bolao) return res.status(404).json({ message: "Bolão não encontrado." });
 
-            await bolao.addJogo(jogoId);
+            await bolao.addJogo(jogoId); // Método gerado pelo Sequelize para relacionamentos N:N
 
             return res.status(201).json({ message: "Jogo adicionado ao bolão com sucesso!" });
         } catch (error) {
@@ -108,7 +108,7 @@ export default {
             const bolao = await Bolao.findByPk(id);
             if (!bolao) return res.status(404).json({ message: "Bolão não encontrado." });
 
-            await bolao.removeJogo(jogoId);
+            await bolao.removeJogo(jogoId); // Método gerado pelo Sequelize para relacionamentos N:N
 
             return res.status(204).send();
         } catch (error) {

@@ -10,7 +10,7 @@ export default {
                 model: User,
                 as: 'usuario'
             }],
-            order: [['pontuacao_no_bolao', 'DESC']]
+            order: [['pontuacao_no_bolao', 'DESC']] // ja retorna os participantes na forma de ranking
             });
 
             const formatados = participantes.map(p => {
