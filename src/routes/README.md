@@ -52,6 +52,15 @@
 
 ---
 
+### 5. TIMES (/times)
+- GET    /times     -> Listar todos os times (Acesso: Logado)
+- GET    /times/:id -> Detalhes do time (Acesso: Logado)
+- GET    /times/busca/:nome -> Buscar time por nome (Acesso: Logado)
+- POST   /times     -> Criar novo time (Acesso: Admin)
+- PUT    /times/:id -> Atualizar time (Acesso: Admin)
+- DELETE /times/:id -> Deletar time (Acesso: Admin)
+
+
 ### LEGENDA DE ACESSO:
 - Público: Sem restrição.
 - Logado: Requer authMiddleware.

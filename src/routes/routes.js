@@ -6,12 +6,17 @@ import bolaoRoutes from './bolaoRoutes.js';
 import jogoRoutes from './jogoRoutes.js';
 import timeRoutes from './timeRoutes.js';
 
+import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { exportExcel, exportPdf } from '../controllers/exportController.js';
+
 const router = express.Router();
 
 router.use('/auth', authRoutes);
 router.use('/users', usersRoutes);
 router.use('/boloes', bolaoRoutes);
 router.use('/jogos', jogoRoutes);
-router.use('/times', timeRoutes)
+router.use('/times', timeRoutes);
+router.get('/boloes/:id/export/excel', authMiddleware, exportExcel);
+router.get('/boloes/:id/export/pdf', authMiddleware, exportPdf);
 
 export default router;
