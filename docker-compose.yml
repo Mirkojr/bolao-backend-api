@@ -38,7 +38,7 @@ services:
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
-    command: "npm run dev"
+    command: "npm run dev --host"
     
 volumes:
   postgres_data_1:
