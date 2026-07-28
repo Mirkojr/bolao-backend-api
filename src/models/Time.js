@@ -14,7 +14,6 @@ const Time = sequelize.define('Time', {
     },
     sigla: {
         type: DataTypes.STRING(3),
-        unique: true,
         allowNull: false,
         validate: {
             len: [2, 3] 

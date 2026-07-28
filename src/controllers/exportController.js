@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import pdfmakeModule from 'pdfmake';
 import { Bolao, Jogo, Time, Participante, Palpite } from '../models/index.js';
+import { PONTUACAO_EXATA, PONTUACAO_PARCIAL } from '../config/game.js';
 
 /*
  * Gera a "planilha do bolão" em Excel (exceljs) e PDF (pdfmake):
@@ -67,8 +68,8 @@ function categoriaCelula(palpite, jogo) {
     jogo.status === 'FINALIZADO' || (jogo.gol_a_real != null && jogo.gol_b_real != null);
   if (!finalizado) return 'pendente';
   const pts = palpite.pontos_ganhos || 0;
-  if (pts >= 25) return 'exato';
-  if (pts >= 10) return 'vencedor';
+  if (pts >= PONTUACAO_EXATA) return 'exato';
+  if (pts >= PONTUACAO_PARCIAL) return 'vencedor';
   return 'errado';
 }
 
