@@ -1,4 +1,5 @@
 import { Palpite, Participante } from '../models/index.js';
+import { PONTUACAO_EXATA, PONTUACAO_PARCIAL } from '../config/game.js';
 
 export const RankingController = {
     async calcularPontuacaoJogo(jogoId, golsA, golsB) {
@@ -17,9 +18,9 @@ export const RankingController = {
             const pB = palpite.gol_b_palpite;
 
             if (pA === golsA && pB === golsB) {
-                novosPontos = 25; // Placar exato
+                novosPontos =  PONTUACAO_EXATA; // Placar exato
             } else if (Math.sign(pA - pB) === Math.sign(golsA - golsB)) {
-                novosPontos = 10; // Acertou vencedor/empate
+                novosPontos = PONTUACAO_PARCIAL; // Acertou vencedor/empate
             }
 
             // Lógica para evitar duplicidade em caso de correção de placar
@@ -54,9 +55,9 @@ export const RankingController = {
 
         // Calcula os pontos deste palpite
         if (pA === rA && pB === rB) {
-            pontos = 25;
+            pontos = PONTUACAO_EXATA;
         } else if (Math.sign(pA - pB) === Math.sign(rA - rB)) {
-            pontos = 10;
+            pontos = PONTUACAO_PARCIAL;
         }
 
         // Salva os pontos no Palpite

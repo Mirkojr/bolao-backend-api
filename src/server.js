@@ -13,7 +13,6 @@ app.use(cors());
 app.use(express.json());
 app.use(router);
 
-await sequelize.sync({ alter: true });
 
 app.get('/', (req, res) => {
   res.send('Voce está na API do Bolão!');
