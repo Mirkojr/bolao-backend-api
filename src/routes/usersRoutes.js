@@ -1,12 +1,11 @@
 import express from 'express';
 import { User } from '../models/index.js';
 import userController from '../controllers/userController.js'
-import authMiddleware from '../middlewares/authMiddleware.js';
-import { adminOnly } from '../middlewares/authMiddleware.js';
+import { authMiddleware, adminOnly } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-
+router.use(authMiddleware);
 
 // retornar um usuário pelo id
 router.get('/:id', userController.show);
@@ -19,7 +18,6 @@ router.get('/', userController.index);
 
 // criar um novo usuário
 router.post('/', userController.store);
-
 
 // atualizar um usuário pelo id
 router.put('/:id', userController.update);
