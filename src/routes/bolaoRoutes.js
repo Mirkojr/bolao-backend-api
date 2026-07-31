@@ -7,26 +7,42 @@ import PalpiteController from '../controllers/palpiteController.js';
 
 const router = express.Router();
 
+// --- Autenticação necessária para fazer qualquer coisa com bolões ---
+router.use(authMiddleware);
+
 // --- CRUD Bolão ---
-router.post('/', authMiddleware, adminOnly, BolaoController.store);
-router.get('/', authMiddleware, BolaoController.index);
-router.get('/:id', authMiddleware, BolaoController.show); 
-router.put('/:id', authMiddleware, adminOnly, BolaoController.update); 
-router.delete('/:id', authMiddleware, adminOnly, BolaoController.delete); 
+router.route('/')
+  .get(BolaoController.index)
+  .post(adminOnly, BolaoController.store);
+
+router.route('/:id')
+  .get(BolaoController.show)
+  .put(adminOnly, BolaoController.update)
+  .delete(adminOnly, BolaoController.delete);
+
 
 // --- Jogos DENTRO do Bolão ---
-router.get('/:id/jogos', authMiddleware, BolaoController.getJogos); 
-router.post('/:id/jogos/:jogoId', authMiddleware, adminOnly, BolaoController.addJogo);
-router.delete('/:id/jogos/:jogoId', authMiddleware, adminOnly, BolaoController.removeJogo);
+router.route('/:id/jogos')
+  .get(BolaoController.getJogos);
+
+router.route('/:id/jogos/:jogoId')
+  .post(adminOnly, BolaoController.addJogo)
+  .delete(adminOnly, BolaoController.removeJogo);
+
 
 // --- Participantes ---
-router.get('/:id/participantes', authMiddleware, ParticipantController.index);
-router.post('/:id/participantes', authMiddleware, adminOnly, ParticipantController.store);
-router.delete('/:id/participantes/:participanteId', authMiddleware, adminOnly, ParticipantController.delete);
+router.route('/:id/participantes')
+  .get(ParticipantController.index)
+  .post(adminOnly, ParticipantController.store);
+
+router.route('/:id/participantes/:participanteId')
+  .delete(adminOnly, ParticipantController.delete);
+
 
 // --- Palpites ---
-router.get('/:id/palpites', authMiddleware, PalpiteController.index);
-router.post('/:id/palpites', authMiddleware, adminOnly, PalpiteController.store);
-router.delete('/:id/palpites', authMiddleware, adminOnly, PalpiteController.delete);
+router.route('/:id/palpites')
+  .get(PalpiteController.index)
+  .post(adminOnly, PalpiteController.store)
+  .delete(adminOnly, PalpiteController.delete);
 
 export default router;

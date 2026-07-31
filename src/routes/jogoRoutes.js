@@ -4,16 +4,15 @@ import GameController from '../controllers/jogoController.js';
 
 const router = express.Router();
 
-// Listar todos os jogos disponíveis no sistema
-router.get('/', authMiddleware, GameController.index); 
+router.use(authMiddleware);
 
-// Criar novo jogo (Ex: Brasil x Argentina)
-router.post('/', authMiddleware, adminOnly, GameController.store); 
+// --- CRUD jogos ---
+router.route('/')
+    .get(GameController.index)
+    .post(adminOnly, GameController.store);
 
-// Atualizar placar/status
-router.put('/:id', authMiddleware, adminOnly, GameController.update); 
-
-// Deletar jogo
-router.delete('/:id', authMiddleware, adminOnly, GameController.delete);
+router.route('/:id')
+    .put(adminOnly, GameController.update)
+    .delete(adminOnly, GameController.delete);
 
 export default router;

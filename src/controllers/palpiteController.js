@@ -63,7 +63,7 @@ export default {
 
         } catch (error) {
             console.error("Erro ao salvar palpite:", error);
-            return res.status(500).json({ message: "Erro interno ao salvar palpite.", error: error.message });
+            return res.status(500).json({ message: "Erro interno ao salvar palpite."});
         }
     },
 
@@ -87,7 +87,7 @@ export default {
             return res.status(200).json({ message: "Palpite deletado com sucesso." });
         } catch (error) {
             console.error("Erro ao deletar palpite:", error);
-            return res.status(500).json({ message: "Erro ao deletar palpite.", error: error.message });
+            return res.status(500).json({ message: "Erro ao deletar palpite."});
         }
     }
 

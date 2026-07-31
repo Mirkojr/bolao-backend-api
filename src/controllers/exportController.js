@@ -167,7 +167,7 @@ async function exportExcel(req, res) {
   } catch (error) {
     console.error('Erro ao exportar Excel:', error);
     if (!res.headersSent) {
-      return res.status(500).json({ message: 'Erro ao gerar o Excel.', error: error.message });
+      return res.status(500).json({ message: 'Erro ao gerar o Excel.'});
     }
     res.end();
   }
@@ -311,7 +311,7 @@ async function exportPdf(req, res) {
   } catch (error) {
     console.error('Erro ao exportar PDF:', error);
     if (!res.headersSent) {
-      return res.status(500).json({ message: 'Erro ao gerar o PDF.', error: error.message });
+      return res.status(500).json({ message: 'Erro ao gerar o PDF.'});
     }
     res.end();
   }
