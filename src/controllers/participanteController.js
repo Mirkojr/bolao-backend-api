@@ -24,7 +24,7 @@ export default {
 
             return res.status(200).json(formatados);
         } catch (error) {
-            return res.status(500).json({ message: "Erro ao buscar participantes.", error: error.message });
+            return res.status(500).json({ message: "Erro ao buscar participantes."});
         }
     },
 
@@ -83,7 +83,7 @@ export default {
                 return res.status(201).json(novoParticipanteAvulso);
             }
         } catch (error) {
-            return res.status(400).json({ message: "Erro ao adicionar participante.", error: error.message });
+            return res.status(400).json({ message: "Erro ao adicionar participante."});
         }
     },
 
@@ -102,8 +102,7 @@ export default {
         } catch (error){
             console.error("Erro ao deletar participante:", error);
             return res.status(400).json({ 
-                message: "Erro ao remover participante.", 
-                error: error.message });
+                message: "Erro ao remover participante."});
         }
     }
 };

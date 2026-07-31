@@ -16,7 +16,7 @@ export default {
             return res.json(jogos);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: "Erro ao buscar jogos", error: error.message });
+            res.status(500).json({ message: "Erro ao buscar jogos"});
         }
     },
 
@@ -48,7 +48,7 @@ export default {
 
             return res.status(201).json(novoJogo);
         } catch (error) {
-            return res.status(400).json({ message: "Erro ao criar jogo.", error: error.message });
+            return res.status(400).json({ message: "Erro ao criar jogo."});
         }
     },
 
@@ -74,7 +74,7 @@ export default {
 
             return res.status(200).json({ message: "Jogo atualizado.", jogo });
         } catch (error) {
-            return res.status(400).json({ message: "Erro ao atualizar jogo.", error: error.message });
+            return res.status(400).json({ message: "Erro ao atualizar jogo."});
         }
     },
 

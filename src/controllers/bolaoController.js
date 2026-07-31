@@ -10,7 +10,7 @@ export default {
             });
             return res.status(201).json(novoBolao);
         } catch (error) {
-            return res.status(400).json({ message: "Falha ao criar Bolão.", error: error.message });
+            return res.status(400).json({ message: "Falha ao criar Bolão."});
         }
     },
 
@@ -31,7 +31,7 @@ export default {
             if (!bolao) return res.status(404).json({ message: "Bolão não encontrado." });
             return res.status(200).json(bolao);
         } catch (error) {
-            return res.status(400).json({ message: "Busca de Bolão falhou.", error: error.message });
+            return res.status(400).json({ message: "Busca de Bolão falhou."});
         }
     },
 
@@ -41,7 +41,7 @@ export default {
             await Bolao.update(req.body, { where: { id: req.params.id } });
             return res.status(200).json({ message: "Bolão atualizado com sucesso." });
         } catch (error) {
-            return res.status(400).json({ message: "Alteração do Bolão falhou.", error: error.message });
+            return res.status(400).json({ message: "Alteração do Bolão falhou."});
         }
     },
 
@@ -51,7 +51,7 @@ export default {
             await Bolao.destroy({ where: { id: req.params.id } });
             return res.status(204).send();
         } catch (error) {
-            return res.status(400).json({ message: "Falha ao apagar Bolão.", error: error.message });
+            return res.status(400).json({ message: "Falha ao apagar Bolão."});
         }
     },
 
@@ -80,7 +80,7 @@ export default {
 
             return res.json(bolao.jogos || []);
         } catch (error) {
-            return res.status(500).json({ message: "Erro ao buscar jogos do bolão.", error: error.message });
+            return res.status(500).json({ message: "Erro ao buscar jogos do bolão."});
         }
     },
 
@@ -96,7 +96,7 @@ export default {
 
             return res.status(201).json({ message: "Jogo adicionado ao bolão com sucesso!" });
         } catch (error) {
-            return res.status(400).json({ message: "Erro ao adicionar jogo ao bolão.", error: error.message });
+            return res.status(400).json({ message: "Erro ao adicionar jogo ao bolão."});
         }
     },
 
@@ -112,7 +112,7 @@ export default {
 
             return res.status(204).send();
         } catch (error) {
-            return res.status(400).json({ message: "Erro ao remover jogo.", error: error.message });
+            return res.status(400).json({ message: "Erro ao remover jogo."});
         }
     }
 };

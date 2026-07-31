@@ -3,11 +3,23 @@ import { User } from '../models/index.js'
 export default{
 
     async index(req, res){
+        try {
+            const users = await User.findAll({ attributes: { exclude : 'senha_hash'} });
+            res.status(200).json(users);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: "Falha na busca dos usuarios."})
+        }
+    },
+
+    async show(req, res){
         try{
-            const user = await User.findByPk(req.params.id);
+            const user = await User.findByPk(req.params.id, {
+                attributes: { exclude : 'senha_hash'}
+            });
             res.status(200).json(user);
         } catch(error){
-            res.status(400).json({ message:"Busca de usuario falhou: ", error})
+            res.status(400).json({ message:"Busca de usuario falhou "})
         }
     },
 
@@ -30,7 +42,7 @@ export default{
             await User.update(req.body,{ where: { id : req.params.id } });
             res.status(200).json("Sucesso ao alterar usuário.");
         } catch(error){
-            res.status(400).json({message: "Alteração de usuário falhou: ", error});
+            res.status(400).json({message: "Alteração de usuário falhou: "});
         }
     },
 
