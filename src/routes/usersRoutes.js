@@ -1,14 +1,14 @@
 import express from 'express';
 import { User } from '../models/index.js';
 import userController from '../controllers/userController.js'
-import { authMiddleware, adminOnly } from '../middlewares/authMiddleware.js';
+import { isOwner, authMiddleware, adminOnly } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
 // retornar um usuário pelo id
-router.get('/:id', userController.show);
+router.get('/:id', isOwner, userController.show);
 
 // A partir daqui, apenas admin pode realizar.
 router.use(adminOnly);

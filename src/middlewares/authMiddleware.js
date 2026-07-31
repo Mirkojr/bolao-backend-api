@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { SECRET } from '../config/auth.js';
+import User from '../models/User.js';
 
 export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -29,4 +30,19 @@ export const adminOnly = (req, res, next) => {
     next();
 };
 
-export default {authMiddleware, adminOnly};
+export const isOwner = (req, res, next) => {
+    if (req.userRole === 'ADMIN') return next();
+
+    const requestedId = req.params.id;
+    if (!requestedId) {
+        return res.status(400).json({ message: "ID do recurso não informado na rota." });
+    }
+
+    if (String(req.userId) !== String(requestedId)){
+        return res.status(403).json({ message: "Só pode solicitar informações de si mesmo." });
+    }
+
+     return next();
+};
+
+export default {authMiddleware, adminOnly, isOwner};

@@ -38,11 +38,24 @@ export default{
     },
 
     async update (req, res){ 
-        try{
-            await User.update(req.body,{ where: { id : req.params.id } });
-            res.status(200).json("Sucesso ao alterar usuário.");
-        } catch(error){
-            res.status(400).json({message: "Alteração de usuário falhou: "});
+        try {
+            const user = await User.findByPk(req.params.id);
+
+            if(!user) return res.json({ message: "Esser user não existe. "});
+
+            const { nome, email, senha } = req.body;
+
+            if (nome !== undefined) user.nome = nome;
+            if (email !== undefined) user.email = email;
+            if (senha !== undefined) user.senha_hash = senha;
+
+            await user.save();
+
+            const { senha_hash, ...userSafe} = user.toJSON();
+            
+            return res.status(200).json(userSafe);
+        } catch (error) {
+            return res.status(500).send({ message: "Não foi possível atualizar o user. "});
         }
     },
 
