@@ -68,6 +68,10 @@ docker compose up -d --build
 
 Isso inicia o PostgreSQL e a API, que fica disponível na porta `3000` por padrão.
 
+## Como rodar fora do Docker
+
+Se você for executar a API ou os seeders direto no Windows, use o PostgreSQL exposto na máquina local. Nesse caso, ajuste o `DB_HOST` para `localhost` no seu `.env` antes de rodar `npm run db:seed` ou `npm start`.
+
 ## Endpoints principais
 
 A API organiza as rotas em grupos para:
