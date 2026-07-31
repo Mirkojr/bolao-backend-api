@@ -18,6 +18,9 @@ app.use(corsMiddleware);
 app.use(express.json());
 app.use(router);
 
+if (process.env.NODE_ENV === 'production'){
+  app.set('trust proxy', 1);
+};
 
 app.get('/', (req, res) => {
   res.send('Voce está na API do Bolão!');
