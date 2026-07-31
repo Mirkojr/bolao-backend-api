@@ -3,13 +3,20 @@ import sequelize from './config/database.js';
 import router from './routes/routes.js'
 import cors from 'cors';
 import User from './models/User.js';
+import helmet from 'helmet';
+import limiter from './middlewares/rateLimiterMiddleware.js';
+import corsMiddleware from './config/cors.js';
+
 import 'dotenv/config';
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// -- Segurança com helmet e rate limiter
+app.use(helmet());
+app.use(limiter);
+app.use(corsMiddleware);
 app.use(express.json());
 app.use(router);
 
@@ -22,13 +29,14 @@ const startServer = async () => {
   try{
     await sequelize.authenticate();
 
-    const adminName = process.env.ADMIN_NAME;
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASS;
-
     // Verifica se o usuário admin já existe, se não, cria um novo
     const adminExists = await User.findOne({ where: { role: 'ADMIN' } });
+    
     if (!adminExists) {
+      const adminName = process.env.ADMIN_NAME;
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const adminPassword = process.env.ADMIN_PASS;
+
       await User.create({
         nome: adminName,
         email: adminEmail,

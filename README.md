@@ -14,6 +14,8 @@ A API foi construída com Node.js, Express e Sequelize, usando PostgreSQL como b
 - PostgreSQL
 - JSON Web Token
 - CORS
+- Helmet
+- Express-rate-limit
 
 ## Pré-requisitos
 
