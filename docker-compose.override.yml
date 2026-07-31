@@ -1,0 +1,11 @@
+services:
+
+  postgres:
+    ports:
+      - "127.0.0.1:${DB_PORT}:5432"   # exposto só na sua máquina (localhost)
+
+  api:
+    command: "npm run dev"
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
