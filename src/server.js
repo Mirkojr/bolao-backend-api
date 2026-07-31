@@ -4,7 +4,6 @@ import router from './routes/routes.js'
 import cors from 'cors';
 import User from './models/User.js';
 import helmet from 'helmet';
-import limiter from './middlewares/rateLimiterMiddleware.js';
 import corsMiddleware from './config/cors.js';
 
 import 'dotenv/config';
@@ -15,7 +14,6 @@ const PORT = process.env.PORT || 3000;
 
 // -- Segurança com helmet e rate limiter
 app.use(helmet());
-app.use(limiter);
 app.use(corsMiddleware);
 app.use(express.json());
 app.use(router);

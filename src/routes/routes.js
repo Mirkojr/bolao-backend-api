@@ -7,12 +7,15 @@ import jogoRoutes from './jogoRoutes.js';
 import timeRoutes from './timeRoutes.js';
 import adminRoutes from './adminRoutes.js'
 
+import { apiLimiter } from '../middlewares/rateLimiterMiddleware.js';
+import { loginLimiter } from '../middlewares/rateLimiterMiddleware.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { exportExcel, exportPdf } from '../controllers/exportController.js';
 
 const router = express.Router();
 
-router.use('/auth', authRoutes);
+router.use(apiLimiter);
+router.use('/auth', loginLimiter, authRoutes);
 router.use('/users', usersRoutes);
 router.use('/boloes', bolaoRoutes);
 router.use('/jogos', jogoRoutes);
