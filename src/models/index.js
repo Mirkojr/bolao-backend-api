@@ -4,20 +4,19 @@ import Participante from './Participante.js';
 import Jogo from './Jogo.js';
 import Palpite from './Palpite.js';
 import Time from './Time.js';
+import BolaoJogo from './BolaoJogo.js';
 
-
-// Relação do bolão para o jogo, N por N
-Bolao.belongsToMany(Jogo, { 
-    through: 'bolao_jogos', 
-    foreignKey: 'bolao_id', 
+Bolao.belongsToMany(Jogo, {
+    through: BolaoJogo,        
+    foreignKey: 'bolao_id',
     otherKey: 'jogo_id',
-    as: 'jogos'
+    as: 'jogos',
 });
-Jogo.belongsToMany(Bolao, { 
-    through: 'bolao_jogos', 
-    foreignKey: 'jogo_id', 
+Jogo.belongsToMany(Bolao, {
+    through: BolaoJogo,         
+    foreignKey: 'jogo_id',
     otherKey: 'bolao_id',
-    as: 'boloes'
+    as: 'boloes',
 });
 
 User.hasMany(Bolao, { foreignKey: 'criador_id', as: 'boloesCriados' });
