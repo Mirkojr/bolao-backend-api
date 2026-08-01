@@ -16,6 +16,7 @@ A API foi construída com Node.js, Express e Sequelize, usando PostgreSQL como b
 - CORS
 - express-rate-limit
 - helmet
+- vitest
 
 ## Pré-requisitos
 
@@ -35,6 +36,9 @@ src/
 ├── models/        # Modelos Sequelize
 ├── routes/        # Rotas da API
 └── server.js      # Ponto de entrada da aplicação
+test/
+├── unit/          # Testes unitários
+└── integration/   # Testes de integração
 ```
 
 ## Instalação

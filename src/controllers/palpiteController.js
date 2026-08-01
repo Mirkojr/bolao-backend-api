@@ -1,5 +1,5 @@
 import { Palpite, Participante, Jogo } from '../models/index.js';
-import { RankingController } from './rankingController.js';
+import { processarPalpiteIndividual } from '../services/rankingService.js';
 
 export default {
    
@@ -55,8 +55,7 @@ export default {
 
             // Se o jogo já foi finalizado, atualiza a pontuação do participante
             if (jogo.status === 'FINALIZADO') {
-                console.log("Inserindo palpite em jogo finalizado. Calculando pontos...");
-                await RankingController.processarPalpiteIndividual(palpite, jogo);
+                await processarPalpiteIndividual(palpite, jogo);
             }
 
             return res.status(created ? 201 : 200).json(palpite);

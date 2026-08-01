@@ -1,5 +1,5 @@
 import { Jogo, Time } from '../models/index.js';
-import { RankingController } from './rankingController.js';
+import { calcularPontuacaoJogo } from '../services/rankingService.js';
 
 export default {
 
@@ -67,10 +67,8 @@ export default {
 
             await jogo.save();
 
-            // Recalcula ranking se necessário
-            if(RankingController && RankingController.calcularPontuacaoJogo) {
-                await RankingController.calcularPontuacaoJogo(jogo.id, gol_a_real, gol_b_real);
-            }
+            await calcularPontuacaoJogo(jogo.id, gol_a_real, gol_b_real);
+            
 
             return res.status(200).json({ message: "Jogo atualizado.", jogo });
         } catch (error) {
