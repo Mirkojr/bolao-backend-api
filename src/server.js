@@ -30,6 +30,12 @@ const startServer = async () => {
   try{
     await sequelize.authenticate();
 
+    // Correção pontual: remove colunas de timestamp herdadas na tabela de junção N:N, fzendo aqui pq o render free é paia
+  await sequelize.query(`
+    ALTER TABLE "bolao_jogos" DROP COLUMN IF EXISTS "created_at";
+    ALTER TABLE "bolao_jogos" DROP COLUMN IF EXISTS "updated_at";
+  `);
+
     // Verifica se o usuário admin já existe, se não, cria um novo
     const adminExists = await User.findOne({ where: { role: 'ADMIN' } });
     
