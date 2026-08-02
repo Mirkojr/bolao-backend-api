@@ -1,63 +1,123 @@
-import Time from "../models/Time.js"
+import { Op } from "sequelize";
+import Time from "../models/Time.js";
+
+// Gera sigla a partir do nome (garante 2 a 3 caracteres)
+const gerarSigla = (nome = "") => {
+    const limpo = nome.replace(/[^a-zA-ZÀ-ÿ0-9]/g, "");
+    return limpo.substring(0, 3).toUpperCase().padEnd(2, "X");
+};
 
 export default {
-    async index(req, res){
+    // LISTAR TIMES (paginação e busca opcionais)
+    async index(req, res) {
         try {
-            const times = await Time.findAll();
-            res.status(201).json(times);
+            const { page, limit = 10, search = "" } = req.query;
+
+            const where = {};
+            if (search) where.nome = { [Op.iLike]: `%${search}%` };
+
+            // Sem "page" => array puro (compatibilidade)
+            if (!page) {
+                const times = await Time.findAll({ where, order: [["nome", "ASC"]] });
+                return res.status(200).json(times);
+            }
+
+            const pageNum = Math.max(1, Number(page) || 1);
+            const limitNum = Math.max(1, Number(limit) || 10);
+            const offset = (pageNum - 1) * limitNum;
+
+            const { rows, count } = await Time.findAndCountAll({
+                where,
+                order: [["nome", "ASC"]],
+                limit: limitNum,
+                offset,
+            });
+
+            return res.status(200).json({
+                data: rows,
+                pagination: {
+                    total: count,
+                    page: pageNum,
+                    limit: limitNum,
+                    totalPages: Math.ceil(count / limitNum),
+                },
+            });
         } catch (error) {
-            res.status(400).json({message: "Busca de usuário falhou"})
+            console.error(error);
+            res.status(400).json({ message: "Busca de times falhou" });
         }
     },
 
-    async show(req, res){
+    async show(req, res) {
         try {
             const time = await Time.findByPk(req.params.id);
-            if(!time) return res.status(404).json({message: "Time não encontrado"});
+            if (!time) return res.status(404).json({ message: "Time não encontrado" });
             res.status(200).json(time);
         } catch (error) {
-            res.status(400).json({message: "Busca de usuário falhou"})
+            res.status(400).json({ message: "Busca de time falhou" });
         }
     },
 
-    async searchByName(req, res){
+    async searchByName(req, res) {
         try {
             const times = await Time.findAll({
-                where: {
-                    nome: req.params.nome
-                }
+                where: { nome: { [Op.iLike]: `%${req.params.nome}%` } },
             });
             res.status(200).json(times);
         } catch (error) {
-            res.status(400).json({message: "Busca de usuário falhou",})
+            res.status(400).json({ message: "Busca de time falhou" });
         }
     },
 
-    async store(req, res){
+    // CRIAR TIME (sigla opcional -> gerada do nome)
+    async store(req, res) {
         try {
-            const novoTime = await Time.create(req.body);
+            const { nome, sigla, escudo_url } = req.body;
+            if (!nome || !nome.trim()) {
+                return res.status(400).json({ message: "O nome do time é obrigatório." });
+            }
+
+            const dados = {
+                nome: nome.trim(),
+                sigla: sigla && sigla.trim() ? sigla.trim().toUpperCase() : gerarSigla(nome),
+            };
+            if (escudo_url) dados.escudo_url = escudo_url;
+
+            const novoTime = await Time.create(dados);
             res.status(201).json(novoTime);
         } catch (error) {
-            res.status(400).json({message: "Criação de usuário falhou"})
+            console.error(error);
+            res.status(400).json({ message: "Criação de time falhou", detail: error.message });
         }
     },
 
-    async update(req, res){
+    // ATUALIZAR TIME (retorna o time atualizado)
+    async update(req, res) {
         try {
-            await Time.update(req.body, {where: {id: req.params.id}});
-            res.status(200).json({message: "Time atualizado com sucesso"});
+            const { nome, sigla, escudo_url } = req.body;
+            const time = await Time.findByPk(req.params.id);
+            if (!time) return res.status(404).json({ message: "Time não encontrado" });
+
+            if (nome !== undefined) time.nome = nome.trim();
+            if (sigla !== undefined) {
+                time.sigla = sigla && sigla.trim() ? sigla.trim().toUpperCase() : gerarSigla(nome ?? time.nome);
+            }
+            if (escudo_url !== undefined) time.escudo_url = escudo_url || null;
+
+            await time.save();
+            res.status(200).json(time);
         } catch (error) {
-            res.status(400).json({message: "Atualização de usuário falhou"})
+            console.error(error);
+            res.status(400).json({ message: "Atualização de time falhou", detail: error.message });
         }
     },
 
-    async delete(req, res){
+    async delete(req, res) {
         try {
-            await Time.destroy({where: {id: req.params.id}});
+            await Time.destroy({ where: { id: req.params.id } });
             res.status(204).send();
         } catch (error) {
-            res.status(400).json({message: "Deleção de usuário falhou"})
+            res.status(400).json({ message: "Deleção de time falhou" });
         }
-    }
-
-}
+    },
+};

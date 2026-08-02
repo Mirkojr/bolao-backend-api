@@ -2,7 +2,7 @@ import rateLimit from 'express-rate-limit';
 
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // janela de 15 minutos
-  max: 100,
+  max: 1000,
   standardHeaders: true,  // envia headers RateLimit-* (padrão novo)
   legacyHeaders: false,   // desativa os antigos X-RateLimit-*
   message: { message: "Muitas requisições vindas deste IP, tente novamente mais tarde. "}
