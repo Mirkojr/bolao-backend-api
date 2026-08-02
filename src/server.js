@@ -12,15 +12,17 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+if (process.env.NODE_ENV === 'production'){
+  app.set('trust proxy', 1);
+};
+
 // -- Segurança com helmet e rate limiter
 app.use(helmet());
 app.use(corsMiddleware);
 app.use(express.json());
 app.use(router);
 
-if (process.env.NODE_ENV === 'production'){
-  app.set('trust proxy', 1);
-};
+
 
 app.get('/', (req, res) => {
   res.send('Voce está na API do Bolão!');
@@ -29,12 +31,6 @@ app.get('/', (req, res) => {
 const startServer = async () => {
   try{
     await sequelize.authenticate();
-
-    // Correção pontual: remove colunas de timestamp herdadas na tabela de junção N:N, fzendo aqui pq o render free é paia
-  await sequelize.query(`
-    ALTER TABLE "bolao_jogos" DROP COLUMN IF EXISTS "created_at";
-    ALTER TABLE "bolao_jogos" DROP COLUMN IF EXISTS "updated_at";
-  `);
 
     // Verifica se o usuário admin já existe, se não, cria um novo
     const adminExists = await User.findOne({ where: { role: 'ADMIN' } });
