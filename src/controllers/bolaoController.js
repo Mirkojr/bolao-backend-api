@@ -1,4 +1,5 @@
 import { Bolao, Jogo, Time } from '../models/index.js';
+import { Op } from 'sequelize';
 
 export default {
     // CRIAR BOLÃO
@@ -15,11 +16,40 @@ export default {
         }
     },
 
-    // LISTAR MEUS BOLÕES
+    // LISTAR MEUS BOLÕES (com paginação e busca opcionais)
     async index(req, res) {
         try {
-            const boloes = await Bolao.findAll({ where: { criador_id: req.userId } });
-            return res.status(200).json(boloes);
+            const { page, limit = 10, search = '' } = req.query;
+
+            const where = { criador_id: req.userId };
+            if (search) where.nome = { [Op.iLike]: `%${search}%` };
+
+            // Sem "page" => comportamento antigo (array puro)
+            if (!page) {
+                const boloes = await Bolao.findAll({ where, order: [['created_at', 'DESC']] });
+                return res.status(200).json(boloes);
+            }
+
+            const pageNum = Math.max(1, Number(page) || 1);
+            const limitNum = Math.max(1, Number(limit) || 10);
+            const offset = (pageNum - 1) * limitNum;
+
+            const { rows, count } = await Bolao.findAndCountAll({
+                where,
+                order: [['created_at', 'DESC']],
+                limit: limitNum,
+                offset,
+            });
+
+            return res.status(200).json({
+                data: rows,
+                pagination: {
+                    total: count,
+                    page: pageNum,
+                    limit: limitNum,
+                    totalPages: Math.ceil(count / limitNum),
+                },
+            });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: 'Erro ao buscar os bolões do usuário.' });
