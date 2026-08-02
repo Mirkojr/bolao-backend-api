@@ -7,8 +7,7 @@ import jogoRoutes from './jogoRoutes.js';
 import timeRoutes from './timeRoutes.js';
 import adminRoutes from './adminRoutes.js'
 
-import { apiLimiter } from '../middlewares/rateLimiterMiddleware.js';
-import { loginLimiter } from '../middlewares/rateLimiterMiddleware.js';
+import { apiLimiter, loginLimiter, writeLimiter } from '../middlewares/rateLimiterMiddleware.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { exportExcel, exportPdf } from '../controllers/exportController.js';
 
