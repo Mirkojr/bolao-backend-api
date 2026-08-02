@@ -32,5 +32,6 @@ services:
       - .env
     environment:
       DB_HOST: postgres
+      NODE_ENV: development
 volumes:
   postgres_data_1:

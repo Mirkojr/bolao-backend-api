@@ -11,7 +11,10 @@
     "start": "node src/server.js",
     "dev": "nodemon -L src/server.js",
     "db:seed": "sequelize-cli db:seed:all",
-    "db:seed:undo": "sequelize-cli db:seed:undo:all"
+    "db:seed:undo": "sequelize-cli db:seed:undo:all",
+    "seed": "node src/seeders/seed.js",
+    "seed:reset": "node src/seeders/seed.js --reset",
+    "seed:xl": "node src/seeders/seed.js --reset --xl"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

@@ -1,8 +1,9 @@
 import rateLimit from 'express-rate-limit';
+import 'dotenv/config';
 
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // janela de 15 minutos
-  max: 100,
+  max: process.env.MAX_API_CALLS,
   standardHeaders: true,  // envia headers RateLimit-* (padrão novo)
   legacyHeaders: false,   // desativa os antigos X-RateLimit-*
   message: { message: "Muitas requisições vindas deste IP, tente novamente mais tarde. "}
