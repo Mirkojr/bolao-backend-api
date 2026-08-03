@@ -77,3 +77,12 @@ ADD CONSTRAINT check_gol_b_palpite_negativo CHECK (gol_b_palpite >= 0);
 ALTER TABLE jogos
 ADD CONSTRAINT check_gol_a_real_negativo CHECK (gol_a_real >= 0),
 ADD CONSTRAINT check_gol_b_real_negativo CHECK (gol_b_real >= 0);
+
+CREATE INDEX idx_boloes_criador ON boloes(criador_id);
+CREATE INDEX idx_jogos_time_a ON jogos(time_a_id);
+CREATE INDEX idx_jogos_time_b ON jogos(time_b_id);
+CREATE INDEX idx_jogos_data ON jogos(data_jogo);
+CREATE INDEX idx_participantes_bolao ON participantes_bolao(bolao_id);
+CREATE INDEX idx_participantes_user ON participantes_bolao(user_id);
+CREATE INDEX idx_palpites_jogo ON palpites(jogo_id);
+CREATE INDEX idx_bolao_jogos_jogo ON bolao_jogos(jogo_id);
