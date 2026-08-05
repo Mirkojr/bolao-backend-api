@@ -32,7 +32,7 @@ export const writeLimiter = rateLimit({
 
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true,

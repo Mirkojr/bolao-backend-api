@@ -14,6 +14,7 @@ import { exportExcel, exportPdf } from '../controllers/exportController.js';
 const router = express.Router();
 
 router.use(apiLimiter);
+router.use(writeLimiter);   
 router.use('/auth', loginLimiter, authRoutes);
 router.use('/users', usersRoutes);
 router.use('/boloes', bolaoRoutes);

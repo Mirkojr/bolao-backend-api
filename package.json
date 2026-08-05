@@ -14,7 +14,8 @@
     "db:seed:undo": "sequelize-cli db:seed:undo:all",
     "seed": "node src/seeders/seed.js",
     "seed:reset": "node src/seeders/seed.js --reset",
-    "seed:xl": "node src/seeders/seed.js --reset --xl"
+    "seed:xl": "node src/seeders/seed.js --reset --xl",
+    "seed:mega": "node src/seeders/seed.js --reset --mega"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

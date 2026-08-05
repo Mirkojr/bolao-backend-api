@@ -6,10 +6,12 @@
  *   node src/seeders/seed.js --reset                  -> limpa tudo antes
  *   node src/seeders/seed.js --times=40 --jogos=1500 --boloes=15 --reset
  *   node src/seeders/seed.js --xl                     -> volume gigante
+ *   node src/seeders/seed.js --mega                   -> volume de demonstração/currículo
  */
 
 import bcrypt from 'bcrypt';
 import sequelize from '../config/database.js';
+import { PONTUACAO_EXATA, PONTUACAO_PARCIAL } from '../config/game.js';
 import { User, Bolao, Participante, Jogo, Palpite, Time } from '../models/index.js';
 import BolaoJogo from '../models/BolaoJogo.js';
 
@@ -24,19 +26,20 @@ const flag = (nome, padrao) => {
 const tem = (nome) => args.includes(`--${nome}`);
 
 const XL = tem('xl');
+const MEGA = tem('mega');
 
 const CFG = {
     reset: tem('reset'),
-    usuarios: flag('usuarios', XL ? 300 : 60),
-    jogos: flag('jogos', XL ? 5000 : 800),
-    boloes: flag('boloes', XL ? 40 : 10),
+    usuarios: flag('usuarios', MEGA ? 1200 : XL ? 300 : 60),
+    jogos: flag('jogos', MEGA ? 15000 : XL ? 5000 : 800),
+    boloes: flag('boloes', MEGA ? 120 : XL ? 40 : 10),
     // por bolão
-    minParticipantes: 5,
-    maxParticipantes: XL ? 25 : 14,
-    minJogosPorBolao: 8,
-    maxJogosPorBolao: XL ? 60 : 30,
+    minParticipantes: flag('min-participantes', MEGA ? 18 : XL ? 5 : 5),
+    maxParticipantes: flag('max-participantes', MEGA ? 60 : XL ? 25 : 14),
+    minJogosPorBolao: flag('min-jogos-por-bolao', MEGA ? 20 : XL ? 8 : 8),
+    maxJogosPorBolao: flag('max-jogos-por-bolao', MEGA ? 120 : XL ? 60 : 30),
     // % dos jogos passados que já têm placar (o resto vira "pendente")
-    percFinalizados: 0.9,
+    percFinalizados: flag('perc-finalizados', MEGA ? 0.92 : 0.9),
     senhaPadrao: '123456',
 };
 
@@ -76,11 +79,11 @@ const golRealista = () => {
     return rnd(5, 7);
 };
 
-/** Regra de pontuação (ajuste se a sua for diferente) */
+/** Regra de pontuação alinhada com o backend */
 const calcularPontos = (pa, pb, ra, rb) => {
-    if (pa === ra && pb === rb) return 10;                     // placar exato
+    if (pa === ra && pb === rb) return PONTUACAO_EXATA;        // placar exato
     const resultado = (a, b) => (a > b ? 'V' : a < b ? 'D' : 'E');
-    if (resultado(pa, pb) === resultado(ra, rb)) return 5;     // acertou o vencedor/empate
+    if (resultado(pa, pb) === resultado(ra, rb)) return PONTUACAO_PARCIAL; // acertou o vencedor/empate
     return 0;
 };
 
