@@ -71,7 +71,10 @@ export default {
     // ATUALIZAR BOLÃO
     async update(req, res) {
         try {
-            await Bolao.update(req.body, { where: { id: req.params.id } });
+            await Bolao.update(
+                { nome: req.body.nome },
+                { where: { id: req.params.id } }
+            );
             return res.status(200).json({ message: "Bolão atualizado com sucesso." });
         } catch (error) {
             console.error(error);

@@ -92,7 +92,9 @@ export default {
             const { participanteId } = req.params;
 
 
-            const deletado = await Participante.destroy({ where: { id: participanteId}});
+            const deletado = await Participante.destroy({
+                where: { id: participanteId, bolao_id: req.params.id },
+            });
 
             if(deletado === 0){
                 res.status(404).json({ message: "Participante não encontrado. "});

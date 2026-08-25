@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { SECRET } from '../config/auth.js';
-import User from '../models/User.js';
+import { Bolao } from '../models/index.js';
 
 export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -30,6 +30,27 @@ export const adminOnly = (req, res, next) => {
     next();
 };
 
+export const bolaoOwner = async (req, res, next) => {
+    if (req.userRole === 'ADMIN') return next();
+
+    try {
+        const bolao = await Bolao.findByPk(req.params.id, { attributes: ['criador_id'] });
+
+        if (!bolao) {
+            return res.status(404).json({ message: 'Bolão não encontrado.' });
+        }
+
+        if (String(bolao.criador_id) !== String(req.userId)) {
+            return res.status(403).json({ message: 'Você só pode administrar seus próprios bolões.' });
+        }
+
+        return next();
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Não foi possível verificar a propriedade do bolão.' });
+    }
+};
+
 export const isOwner = (req, res, next) => {
     if (req.userRole === 'ADMIN') return next();
 
@@ -45,4 +66,4 @@ export const isOwner = (req, res, next) => {
      return next();
 };
 
-export default {authMiddleware, adminOnly, isOwner};
+export default {authMiddleware, adminOnly, bolaoOwner, isOwner};
