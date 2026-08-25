@@ -3,6 +3,51 @@ import { User } from '../models/index.js';
 import { SECRET } from '../config/auth.js';
 
 export default {
+    async register(req, res) {
+        const nome = typeof req.body?.nome === 'string' ? req.body.nome.trim() : '';
+        const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+        const senha = req.body?.senha;
+
+        if (!nome || !email || typeof senha !== 'string' || !senha) {
+            return res.status(400).json({ message: 'Nome, e-mail e senha são obrigatórios.' });
+        }
+
+        if (senha.length < 6) {
+            return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres.' });
+        }
+
+        try {
+            const user = await User.create({
+                nome,
+                email,
+                senha_hash: senha,
+                role: 'USER',
+                pontuacao_total: 0,
+            });
+
+            return res.status(201).json({
+                message: 'Conta criada com sucesso.',
+                user: {
+                    id: String(user.id),
+                    nome: user.nome,
+                    pontuacao_total: user.pontuacao_total,
+                    role: user.role,
+                },
+            });
+        } catch (error) {
+            if (error.name === 'SequelizeUniqueConstraintError') {
+                return res.status(409).json({ message: 'Este e-mail já está cadastrado.' });
+            }
+
+            if (error.name === 'SequelizeValidationError') {
+                return res.status(400).json({ message: error.errors[0]?.message || 'Dados inválidos.' });
+            }
+
+            console.error(error);
+            return res.status(500).json({ message: 'Erro interno do servidor.' });
+        }
+    },
+
     async login(req, res) {
         const { email, senha } = req.body;
 
