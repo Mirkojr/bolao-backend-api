@@ -1,4 +1,5 @@
 import { Op, literal } from 'sequelize';
+import sequelize from '../config/database.js';
 import { Jogo, Time, Palpite } from '../models/index.js';
 import { calcularPontuacaoJogo } from '../services/rankingService.js';
 import { parseGols } from '../utils/placar.js';
@@ -233,11 +234,14 @@ export default {
                 jogo.status = 'FINALIZADO';
             }
 
-            await jogo.save();
+            // placar e pontuação no mesmo "tudo ou nada"
+            await sequelize.transaction(async (t) => {
+                await jogo.save({ transaction: t });
 
-            if (lancouPlacar) {
-                await calcularPontuacaoJogo(jogo.id, golsA, golsB);
-            }
+                if (lancouPlacar) {
+                    await calcularPontuacaoJogo(jogo.id, golsA, golsB, t);
+                }
+            });
 
             const jogoCompleto = await Jogo.findByPk(jogo.id, {
                 include: [{ model: Time, as: 'timeA' }, { model: Time, as: 'timeB' }],
