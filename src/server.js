@@ -1,3 +1,4 @@
+import './config/env.js';
 import express from 'express';
 import sequelize from './config/database.js';
 import router from './routes/routes.js'
@@ -40,6 +41,10 @@ const startServer = async () => {
       const adminEmail = process.env.ADMIN_EMAIL;
       const adminPassword = process.env.ADMIN_PASS;
 
+      if (!adminName || !adminEmail || !adminPassword) {
+        throw new Error('Nenhum administrador no banco: defina ADMIN_NAME, ADMIN_EMAIL e ADMIN_PASS para criar o primeiro.');
+      }
+
       await User.create({
         nome: adminName,
         email: adminEmail,
@@ -54,7 +59,8 @@ const startServer = async () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });
   } catch(error){
-    console.error('Não foi possível se conectar ao banco de dados: ', error);
+    console.error('Falha ao iniciar a API: ', error);
+    process.exit(1);
   }
 }
 

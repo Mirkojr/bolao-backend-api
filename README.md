@@ -36,9 +36,28 @@ src/
 ├── models/        # Modelos Sequelize
 ├── routes/        # Rotas da API
 └── server.js      # Ponto de entrada da aplicação
-test/
-├── unit/          # Testes unitários
-└── integration/   # Testes de integração
+tests/
+└── unit/          # Testes unitários
+```
+
+## Primeiros passos (desenvolvimento)
+
+```bash
+cp .env.example .env              # valores prontos para uso local
+docker compose up -d --build      # sobe PostgreSQL + API com nodemon
+docker compose exec api npm run seed:reset   # opcional: popula o banco com dados de exemplo
+```
+
+- A API responde em `http://localhost:3000` (variável `PORT`). O frontend deve usar essa URL em `VITE_API_URL`.
+- Login do admin criado na inicialização: `ADMIN_EMAIL` / `ADMIN_PASS` do `.env` (`admin@email.com` / `admin123` no exemplo).
+- Depois do seed: `admin@bolao.com` ou `user1@bolao.com`, ambos com a senha `123456`.
+- Se você mudar o `package.json` ou já tinha rodado uma versão anterior do projeto, recrie o volume de `node_modules` do container com `docker compose up -d --build -V`.
+
+## Testes
+
+```bash
+npm install
+npm run test:unit
 ```
 
 ## Instalação
@@ -86,7 +105,7 @@ CORS_ORIGINS=http://localhost:5173,https://bolao-frontend-five.vercel.app
 O projeto usa dois arquivos de compose:
 
 - `docker-compose.yml` — configuração base, pronta para produção.
-- `docker-compose.override.yml` — sobreposição de desenvolvimento (nodemon, hot-reload e banco exposto em `localhost`), carregada automaticamente.
+- `docker-compose.override.yml` — sobreposição de desenvolvimento (estágio `dev` do Dockerfile com nodemon, hot-reload e banco exposto em `localhost`), carregada automaticamente.
 
 ### Desenvolvimento
 
@@ -131,10 +150,12 @@ As rotas são protegidas por middleware de autenticação (JWT) e, em alguns cas
 
 Ao iniciar, a aplicação:
 
+- confere se as variáveis obrigatórias (`ACCESS_TOKEN_KEY` e `DB_*`) estão definidas, e encerra com uma mensagem clara se faltar alguma
 - conecta ao PostgreSQL com Sequelize
-- sincroniza os modelos com o banco
-- garante a criação de um usuário administrador padrão, caso ainda não exista
+- garante a criação de um usuário administrador padrão (a partir de `ADMIN_*`), caso ainda não exista
 - sobe o servidor HTTP na porta definida em `PORT`
+
+Se qualquer etapa falhar, o processo encerra com código 1.
 
 ## Banco de dados
 
