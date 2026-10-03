@@ -4,6 +4,8 @@ import { authMiddleware, bolaoOwner, bolaoMember } from '../middlewares/authMidd
 import BolaoController from '../controllers/bolaoController.js';
 import ParticipantController from '../controllers/participanteController.js';
 import PalpiteController from '../controllers/palpiteController.js';
+import { validate } from '../middlewares/validate.js';
+import { schemaBolao, schemaParticipante, schemaPalpite, schemaRemoverPalpite } from '../schemas/index.js';
 
 const router = express.Router();
 
@@ -13,11 +15,11 @@ router.use(authMiddleware);
 // --- CRUD Bolão ---
 router.route('/')
   .get(BolaoController.index)
-  .post(BolaoController.store);
+  .post(validate({ body: schemaBolao }), BolaoController.store);
 
 router.route('/:id')
   .get(bolaoMember, BolaoController.show)
-  .put(bolaoOwner, BolaoController.update)
+  .put(bolaoOwner, validate({ body: schemaBolao }), BolaoController.update)
   .delete(bolaoOwner, BolaoController.delete);
 
 
@@ -33,7 +35,7 @@ router.route('/:id/jogos/:jogoId')
 // --- Participantes ---
 router.route('/:id/participantes')
   .get(bolaoMember, ParticipantController.index)
-  .post(bolaoOwner, ParticipantController.store);
+  .post(bolaoOwner, validate({ body: schemaParticipante }), ParticipantController.store);
 
 router.route('/:id/participantes/:participanteId')
   .delete(bolaoOwner, ParticipantController.delete);
@@ -42,7 +44,7 @@ router.route('/:id/participantes/:participanteId')
 // --- Palpites ---
 router.route('/:id/palpites')
   .get(bolaoMember, PalpiteController.index)
-  .post(bolaoOwner, PalpiteController.store)
-  .delete(bolaoOwner, PalpiteController.delete);
+  .post(bolaoOwner, validate({ body: schemaPalpite }), PalpiteController.store)
+  .delete(bolaoOwner, validate({ body: schemaRemoverPalpite }), PalpiteController.delete);
 
 export default router;

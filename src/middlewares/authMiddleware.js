@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { SECRET } from '../config/auth.js';
 import { Bolao, Participante } from '../models/index.js';
+import { ForbiddenError, NotFoundError } from '../errors.js';
 
 export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -33,22 +34,14 @@ export const adminOnly = (req, res, next) => {
 export const bolaoOwner = async (req, res, next) => {
     if (req.userRole === 'ADMIN') return next();
 
-    try {
-        const bolao = await Bolao.findByPk(req.params.id, { attributes: ['criador_id'] });
+    const bolao = await Bolao.findByPk(req.params.id, { attributes: ['criador_id'] });
+    if (!bolao) throw new NotFoundError('Bolão não encontrado.');
 
-        if (!bolao) {
-            return res.status(404).json({ message: 'Bolão não encontrado.' });
-        }
-
-        if (String(bolao.criador_id) !== String(req.userId)) {
-            return res.status(403).json({ message: 'Você só pode administrar seus próprios bolões.' });
-        }
-
-        return next();
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Não foi possível verificar a propriedade do bolão.' });
+    if (String(bolao.criador_id) !== String(req.userId)) {
+        throw new ForbiddenError('Você só pode administrar seus próprios bolões.');
     }
+
+    return next();
 };
 
 // Leitura de um bolão: liberada para o dono, para participantes vinculados à
@@ -56,29 +49,18 @@ export const bolaoOwner = async (req, res, next) => {
 export const bolaoMember = async (req, res, next) => {
     if (req.userRole === 'ADMIN') return next();
 
-    try {
-        const bolao = await Bolao.findByPk(req.params.id, { attributes: ['criador_id'] });
+    const bolao = await Bolao.findByPk(req.params.id, { attributes: ['criador_id'] });
+    if (!bolao) throw new NotFoundError('Bolão não encontrado.');
 
-        if (!bolao) {
-            return res.status(404).json({ message: 'Bolão não encontrado.' });
-        }
+    if (String(bolao.criador_id) === String(req.userId)) return next();
 
-        if (String(bolao.criador_id) === String(req.userId)) return next();
+    const participa = await Participante.findOne({
+        where: { bolao_id: req.params.id, user_id: req.userId },
+        attributes: ['id'],
+    });
+    if (!participa) throw new ForbiddenError('Você não tem acesso a este bolão.');
 
-        const participa = await Participante.findOne({
-            where: { bolao_id: req.params.id, user_id: req.userId },
-            attributes: ['id'],
-        });
-
-        if (!participa) {
-            return res.status(403).json({ message: 'Você não tem acesso a este bolão.' });
-        }
-
-        return next();
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Não foi possível verificar o acesso ao bolão.' });
-    }
+    return next();
 };
 
 export const isOwner = (req, res, next) => {

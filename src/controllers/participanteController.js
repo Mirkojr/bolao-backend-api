@@ -1,109 +1,75 @@
 import { Bolao, User, Participante } from '../models/index.js';
+import { BadRequestError, NotFoundError } from '../errors.js';
 
 export default {
-    // GET /:id/participantes
+    // GET /:id/participantes (já na ordem do ranking)
     async index(req, res) {
-        try {
-            const participantes = await Participante.findAll({
-                where: { bolao_id: req.params.id },
-                include: [{
+        const participantes = await Participante.findAll({
+            where: { bolao_id: req.params.id },
+            include: [{
                 model: User,
                 as: 'usuario',
                 attributes: ['id', 'nome'],
             }],
-            order: [['pontuacao_no_bolao', 'DESC']] // ja retorna os participantes na forma de ranking
-            });
+            order: [['pontuacao_no_bolao', 'DESC']]
+        });
 
-            const formatados = participantes.map(p => {
-                const dados = p.toJSON();
-                const nomeExibicao =  dados.nome_avulso || "Participante Anônimo";
-                return {
-                    ...dados,
-                    nome: nomeExibicao,
-                };
-            });
+        const formatados = participantes.map(p => {
+            const dados = p.toJSON();
+            return { ...dados, nome: dados.nome_avulso || "Participante Anônimo" };
+        });
 
-            return res.status(200).json(formatados);
-        } catch (error) {
-            return res.status(500).json({ message: "Erro ao buscar participantes."});
-        }
+        return res.status(200).json(formatados);
     },
 
     // POST /:id/participantes
     // body: { nome } para convidado avulso, ou { user_id } para vincular uma conta
     async store(req, res) {
-        try {
-            const nome = typeof req.body?.nome === 'string' ? req.body.nome.trim() : '';
-            const userId = req.body?.user_id;
-            const bolaoId = req.params.id;
+        const { nome, user_id: userId } = req.body;
+        const bolaoId = req.params.id;
 
-            const bolao = await Bolao.findByPk(bolaoId);
-            if (!bolao) return res.status(404).json({ message: "Bolão não encontrado" });
+        const bolao = await Bolao.findByPk(bolaoId, { attributes: ['id'] });
+        if (!bolao) throw new NotFoundError('Bolão não encontrado.');
 
-            if (userId !== undefined && userId !== null && userId !== '') {
-                const usuarioRegistrado = await User.findByPk(userId);
-                if (!usuarioRegistrado) {
-                    return res.status(404).json({ message: "Usuário não encontrado." });
-                }
+        if (userId) {
+            const usuarioRegistrado = await User.findByPk(userId);
+            if (!usuarioRegistrado) throw new NotFoundError('Usuário não encontrado.');
 
-                const jaParticipa = await Participante.findOne({
-                    where: { bolao_id: bolaoId, user_id: usuarioRegistrado.id }
-                });
-
-                if (jaParticipa) {
-                    return res.status(400).json({ message: `O usuário ${usuarioRegistrado.nome} já está neste bolão` });
-                }
-
-                const novoParticipante = await Participante.create({
-                    bolao_id: bolaoId,
-                    user_id: usuarioRegistrado.id,
-                    nome_avulso: usuarioRegistrado.nome,
-                    pontuacao_no_bolao: 0
-                });
-                return res.status(201).json(novoParticipante);
-            }
-
-            if (!nome) return res.status(400).json({ message: "O nome do participante é obrigatório." });
-
-            const jaParticipaAvulso = await Participante.findOne({
-                where: { bolao_id: bolaoId, nome_avulso: nome }
+            const jaParticipa = await Participante.findOne({
+                where: { bolao_id: bolaoId, user_id: usuarioRegistrado.id }
             });
+            if (jaParticipa) throw new BadRequestError(`O usuário ${usuarioRegistrado.nome} já está neste bolão`);
 
-            if (jaParticipaAvulso) {
-                return res.status(400).json({ message: `Já existe um convidado chamado ${nome} neste bolão!` });
-            }
-
-            const novoParticipanteAvulso = await Participante.create({
+            const novoParticipante = await Participante.create({
                 bolao_id: bolaoId,
-                user_id: null,
-                nome_avulso: nome,
+                user_id: usuarioRegistrado.id,
+                nome_avulso: usuarioRegistrado.nome,
                 pontuacao_no_bolao: 0
             });
-            return res.status(201).json(novoParticipanteAvulso);
-        } catch (error) {
-            console.error("Erro ao adicionar participante:", error);
-            return res.status(400).json({ message: "Erro ao adicionar participante."});
+            return res.status(201).json(novoParticipante);
         }
+
+        const jaParticipaAvulso = await Participante.findOne({
+            where: { bolao_id: bolaoId, nome_avulso: nome }
+        });
+        if (jaParticipaAvulso) throw new BadRequestError(`Já existe um convidado chamado ${nome} neste bolão!`);
+
+        const novoParticipanteAvulso = await Participante.create({
+            bolao_id: bolaoId,
+            user_id: null,
+            nome_avulso: nome,
+            pontuacao_no_bolao: 0
+        });
+        return res.status(201).json(novoParticipanteAvulso);
     },
 
     async delete (req, res) {
-        try{
-            const { participanteId } = req.params;
+        const deletado = await Participante.destroy({
+            where: { id: req.params.participanteId, bolao_id: req.params.id },
+        });
 
+        if (deletado === 0) throw new NotFoundError('Participante não encontrado.');
 
-            const deletado = await Participante.destroy({
-                where: { id: participanteId, bolao_id: req.params.id },
-            });
-
-            if(deletado === 0){
-                return res.status(404).json({ message: "Participante não encontrado. "});
-            }
-
-            return res.status(204).send();
-        } catch (error){
-            console.error("Erro ao deletar participante:", error);
-            return res.status(400).json({ 
-                message: "Erro ao remover participante."});
-        }
+        return res.status(204).send();
     }
 };

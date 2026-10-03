@@ -34,13 +34,16 @@ const Jogo = sequelize.define('Jogo', {
             min: 0
         }
     },
+    // Derivado do placar: FINALIZADO com os dois gols, AGENDADO sem nenhum
+    // (o banco garante com a CHECK check_status_placar)
     status: {
         type: DataTypes.STRING,
+        allowNull: false,
         defaultValue: 'AGENDADO',
         validate: {
             isIn: {
-                args: [['AGENDADO', 'EM_ANDAMENTO', 'FINALIZADO']],
-                msg: "O status deve ser AGENDADO, EM_ANDAMENTO ou FINALIZADO"
+                args: [['AGENDADO', 'FINALIZADO']],
+                msg: "O status deve ser AGENDADO ou FINALIZADO"
             }
         }
     },

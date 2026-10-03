@@ -1,6 +1,8 @@
 import express from 'express'
 import timeController from '../controllers/timeController.js';
 import { authMiddleware, adminOnly } from '../middlewares/authMiddleware.js';
+import { validate } from '../middlewares/validate.js';
+import { schemaAtualizarTime, schemaCriarTime } from '../schemas/index.js';
 
 const router = express.Router();
 
@@ -12,8 +14,8 @@ router.get('/busca/:nome', timeController.searchByName);
 
 router.use(adminOnly);
 
-router.post('/', timeController.store);
-router.put('/:id', timeController.update);
+router.post('/', validate({ body: schemaCriarTime }), timeController.store);
+router.put('/:id', validate({ body: schemaAtualizarTime }), timeController.update);
 router.delete('/:id', timeController.delete);
 
 export default router;

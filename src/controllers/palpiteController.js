@@ -2,127 +2,79 @@ import sequelize from '../config/database.js';
 import { Palpite, Participante, Jogo } from '../models/index.js';
 import BolaoJogo from '../models/BolaoJogo.js';
 import { processarPalpiteIndividual, recalcularParticipanteEUsuario } from '../services/rankingService.js';
-import { parseGols } from '../utils/placar.js';
+import { BadRequestError, NotFoundError } from '../errors.js';
 
 export default {
    
     async index(req, res) {
-        try {
-            const { id } = req.params; 
+        const palpites = await Palpite.findAll({
+            where: { bolao_id: req.params.id },
+            attributes: ['gol_a_palpite', 'gol_b_palpite', 'jogo_id', 'participante_id', 'pontos_ganhos']
+        });
 
-            const palpites = await Palpite.findAll({
-                where: { bolao_id: id },
-                attributes: ['gol_a_palpite', 'gol_b_palpite', 'jogo_id', 'participante_id', 'pontos_ganhos']
-            });
-
-            return res.json(palpites);
-        } catch (error) {
-            console.error("Erro ao buscar palpites:", error);
-            return res.status(500).json({ message: "Erro ao buscar palpites." });
-        }
+        return res.json(palpites);
     },
 
+    // Corpo já validado pelo schemaPalpite (ids e placares inteiros)
     async store(req, res) {
-        try {
-            const { id } = req.params; 
-            const { participante_id, jogo_id, gol_a_palpite, gol_b_palpite } = req.body ?? {};
+        const { id } = req.params; 
+        const { participante_id, jogo_id, gol_a_palpite, gol_b_palpite } = req.body;
 
-            if (!participante_id || !jogo_id) {
-                return res.status(400).json({ message: "Participante e Jogo são obrigatórios." });
+        const participante = await Participante.findOne({ where: { id: participante_id, bolao_id: id } });
+        if (!participante) throw new NotFoundError('Participante não encontrado neste bolão.');
+
+        const jogo = await Jogo.findByPk(jogo_id);
+        if (!jogo) throw new NotFoundError('Jogo não encontrado.');
+
+        const jogoNoBolao = await BolaoJogo.findOne({ where: { bolao_id: id, jogo_id } });
+        if (!jogoNoBolao) throw new BadRequestError('Este jogo não faz parte do bolão.');
+
+        const [palpite, created] = await sequelize.transaction(async (t) => {
+            // Salva o palpite (Upsert)
+            const resultado = await Palpite.upsert({
+                bolao_id: id,
+                participante_id,
+                jogo_id,
+                gol_a_palpite,
+                gol_b_palpite,
+                data_palpite: new Date() 
+            }, { transaction: t });
+
+            // Se o jogo já foi finalizado, atualiza a pontuação do participante
+            if (jogo.status === 'FINALIZADO') {
+                await processarPalpiteIndividual(resultado[0], jogo, t);
             }
 
-            const golsA = parseGols(gol_a_palpite);
-            const golsB = parseGols(gol_b_palpite);
-            if (golsA === null || golsB === null) {
-                return res.status(400).json({ message: "O palpite deve ter dois placares inteiros, maiores ou iguais a zero." });
-            }
+            return resultado;
+        });
 
-            // Busca o Participante
-            const participante = await Participante.findOne({
-                where: { id: participante_id, bolao_id: id }
-            });
-
-            if (!participante) {
-                return res.status(404).json({ message: "Participante não encontrado neste bolão." });
-            }
-
-            // Busca o Jogo para conferir o status
-            const jogo = await Jogo.findByPk(jogo_id);
-            if (!jogo) {
-                return res.status(404).json({ message: "Jogo não encontrado." });
-            }
-
-            const jogoNoBolao = await BolaoJogo.findOne({ where: { bolao_id: id, jogo_id } });
-            if (!jogoNoBolao) {
-                return res.status(400).json({ message: "Este jogo não faz parte do bolão." });
-            }
-
-            const [palpite, created] = await sequelize.transaction(async (t) => {
-                // Salva o palpite (Upsert)
-                const resultado = await Palpite.upsert({
-                    bolao_id: id,
-                    participante_id: participante_id,
-                    jogo_id: jogo_id,
-                    gol_a_palpite: golsA,
-                    gol_b_palpite: golsB,
-                    data_palpite: new Date() 
-                }, { transaction: t });
-
-                // Se o jogo já foi finalizado, atualiza a pontuação do participante
-                if (jogo.status === 'FINALIZADO') {
-                    await processarPalpiteIndividual(resultado[0], jogo, t);
-                }
-
-                return resultado;
-            });
-
-            return res.status(created ? 201 : 200).json(palpite);
-
-        } catch (error) {
-            console.error("Erro ao salvar palpite:", error);
-            return res.status(500).json({ message: "Erro interno ao salvar palpite."});
-        }
+        return res.status(created ? 201 : 200).json(palpite);
     },
 
     async delete(req, res) {
-        try {
-            const { id } = req.params; // ID do Bolão
-            const { participante_id, jogo_id } = req.body ?? {};
+        const { id } = req.params; // ID do Bolão
+        const { participante_id, jogo_id } = req.body;
 
-            if (!participante_id || !jogo_id) {
-                return res.status(400).json({ message: "Participante e Jogo são obrigatórios." });
-            }
-
-            const deletado = await sequelize.transaction(async (t) => {
-                const apagados = await Palpite.destroy({
-                    where: { 
-                        bolao_id: id,
-                        participante_id: participante_id,
-                        jogo_id: jogo_id
-                    },
-                    transaction: t,
-                });
-
-                // Se o jogo já tinha resultado, os pontos desse palpite saem do ranking
-                if (apagados > 0) {
-                    const jogo = await Jogo.findByPk(jogo_id, { attributes: ['status'], transaction: t });
-                    if (jogo?.status === 'FINALIZADO') {
-                        await recalcularParticipanteEUsuario(participante_id, t);
-                    }
-                }
-
-                return apagados;
+        const deletado = await sequelize.transaction(async (t) => {
+            const apagados = await Palpite.destroy({
+                where: { bolao_id: id, participante_id, jogo_id },
+                transaction: t,
             });
 
-            if (deletado === 0) {
-                return res.status(404).json({ message: "Palpite não encontrado." });
+            // Se o jogo já tinha resultado, os pontos desse palpite saem do ranking
+            if (apagados > 0) {
+                const jogo = await Jogo.findByPk(jogo_id, { attributes: ['status'], transaction: t });
+                if (jogo?.status === 'FINALIZADO') {
+                    await recalcularParticipanteEUsuario(participante_id, t);
+                }
             }
 
-            return res.status(200).json({ message: "Palpite deletado com sucesso." });
-        } catch (error) {
-            console.error("Erro ao deletar palpite:", error);
-            return res.status(500).json({ message: "Erro ao deletar palpite."});
-        }
+            return apagados;
+        });
+
+        if (deletado === 0) throw new NotFoundError('Palpite não encontrado.');
+
+        return res.status(200).json({ message: "Palpite deletado com sucesso." });
     }
 
 };
