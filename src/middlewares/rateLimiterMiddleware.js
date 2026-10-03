@@ -30,9 +30,11 @@ export const writeLimiter = rateLimit({
   handler: respostaLimite('Muitas operações em sequência. Aguarde alguns segundos.'),
 });
 
+// Só tentativas que falham contam (skipSuccessfulRequests): freia força bruta
+// sem atrapalhar quem acerta a senha.
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 1000,
+  limit: Number(process.env.MAX_LOGIN_ATTEMPTS) || 10,
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true,

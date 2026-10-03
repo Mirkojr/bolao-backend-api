@@ -5,7 +5,12 @@ services:
       - "127.0.0.1:${DB_PORT}:5432"   # exposto só na sua máquina (localhost)
 
   api:
+    build:
+      context: .
+      target: dev                     # estágio com nodemon e demais devDependencies
     command: "npm run dev"
+    environment:
+      NODE_ENV: development
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules

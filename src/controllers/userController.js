@@ -1,70 +1,62 @@
 import { User } from '../models/index.js'
+import { ConflictError, NotFoundError } from '../errors.js';
+
+async function buscarUsuario(id) {
+    const user = await User.findByPk(id);
+    if (!user) throw new NotFoundError('Usuário não encontrado.');
+    return user;
+}
+
+async function garantirEmailLivre(email, idAtual) {
+    const existente = await User.findOne({ where: { email }, attributes: ['id'] });
+    if (existente && String(existente.id) !== String(idAtual)) {
+        throw new ConflictError('Este e-mail já está cadastrado.');
+    }
+}
 
 export default{
 
     async index(req, res){
-        try {
-            const users = await User.findAll({ attributes: { exclude : 'senha_hash'} });
-            res.status(200).json(users);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: "Falha na busca dos usuarios."})
-        }
+        const users = await User.findAll();
+        return res.status(200).json(users);
     },
 
     async show(req, res){
-        try{
-            const user = await User.findByPk(req.params.id, {
-                attributes: { exclude : 'senha_hash'}
-            });
-            res.status(200).json(user);
-        } catch(error){
-            res.status(400).json({ message:"Busca de usuario falhou "})
-        }
+        return res.status(200).json(await buscarUsuario(req.params.id));
     },
 
     async store(req, res){
-        try{
-            const newUser = await User.create({
-                nome: req.body.nome,
-                email: req.body.email,
-                senha_hash: req.body.senha
-            })
+        const { nome, email, senha } = req.body;
+        await garantirEmailLivre(email);
 
-            res.status(201).json(newUser);
-        } catch(error){
-             res.status(400).json({message : "Inserção de usuário falhou."});
-        }
+        const newUser = await User.create({ nome, email, senha_hash: senha });
+        return res.status(201).json(newUser);
     },
 
     async update (req, res){ 
-        try {
-            const user = await User.findByPk(req.params.id);
+        const user = await buscarUsuario(req.params.id);
+        const { nome, email, senha } = req.body;
 
-            if(!user) return res.json({ message: "Esser user não existe. "});
+        if (email !== undefined) await garantirEmailLivre(email, user.id);
 
-            const { nome, email, senha } = req.body;
+        if (nome !== undefined) user.nome = nome;
+        if (email !== undefined) user.email = email;
+        if (senha !== undefined) user.senha_hash = senha;
 
-            if (nome !== undefined) user.nome = nome;
-            if (email !== undefined) user.email = email;
-            if (senha !== undefined) user.senha_hash = senha;
-
-            await user.save();
-
-            const { senha_hash, ...userSafe} = user.toJSON();
-            
-            return res.status(200).json(userSafe);
-        } catch (error) {
-            return res.status(500).send({ message: "Não foi possível atualizar o user. "});
-        }
+        await user.save();
+        return res.status(200).json(user);
     },
 
     async delete (req, res) { 
-        try{
-            await User.destroy({ where: { id : req.params.id } });
-            res.status(200).json("Sucesso ao apagar usuário.");
-        } catch(error){
-            res.status(204).send();
+        try {
+            const apagados = await User.destroy({ where: { id : req.params.id } });
+            if (apagados === 0) throw new NotFoundError('Usuário não encontrado.');
+            return res.status(204).send();
+        } catch (error) {
+            if (error.name === 'SequelizeForeignKeyConstraintError') {
+                throw new ConflictError('O usuário ainda tem bolões ou participações vinculadas.');
+            }
+            throw error;
         }
     }
 

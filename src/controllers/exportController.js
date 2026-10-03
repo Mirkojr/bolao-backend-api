@@ -69,9 +69,7 @@ const textoPalpite = (p) => (p ? `${p.gol_a_palpite} x ${p.gol_b_palpite}` : 'â€
 // Retorna a chave de cor da cÃ©lula do palpite
 function categoriaCelula(palpite, jogo) {
   if (!palpite) return 'vazio';
-  const finalizado =
-    jogo.status === 'FINALIZADO' || (jogo.gol_a_real != null && jogo.gol_b_real != null);
-  if (!finalizado) return 'pendente';
+  if (jogo.status !== 'FINALIZADO') return 'pendente';
   const pts = palpite.pontos_ganhos || 0;
   if (pts >= PONTUACAO_EXATA) return 'exato';
   if (pts >= PONTUACAO_PARCIAL) return 'vencedor';

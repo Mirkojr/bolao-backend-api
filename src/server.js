@@ -1,32 +1,9 @@
-import express from 'express';
+import './config/env.js';
+import app from './app.js';
 import sequelize from './config/database.js';
-import router from './routes/routes.js'
-import cors from 'cors';
 import User from './models/User.js';
-import helmet from 'helmet';
-import corsMiddleware from './config/cors.js';
-
-import 'dotenv/config';
-
-const app = express();
 
 const PORT = process.env.PORT || 3000;
-
-if (process.env.NODE_ENV === 'production'){
-  app.set('trust proxy', 1);
-};
-
-// -- Segurança com helmet e rate limiter
-app.use(helmet());
-app.use(corsMiddleware);
-app.use(express.json());
-app.use(router);
-
-
-
-app.get('/', (req, res) => {
-  res.send('Voce está na API do Bolão!');
-});
 
 const startServer = async () => {
   try{
@@ -39,6 +16,10 @@ const startServer = async () => {
       const adminName = process.env.ADMIN_NAME;
       const adminEmail = process.env.ADMIN_EMAIL;
       const adminPassword = process.env.ADMIN_PASS;
+
+      if (!adminName || !adminEmail || !adminPassword) {
+        throw new Error('Nenhum administrador no banco: defina ADMIN_NAME, ADMIN_EMAIL e ADMIN_PASS para criar o primeiro.');
+      }
 
       await User.create({
         nome: adminName,
@@ -54,7 +35,8 @@ const startServer = async () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });
   } catch(error){
-    console.error('Não foi possível se conectar ao banco de dados: ', error);
+    console.error('Falha ao iniciar a API: ', error);
+    process.exit(1);
   }
 }
 

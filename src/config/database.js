@@ -1,15 +1,10 @@
 import { Sequelize } from 'sequelize';
-import 'dotenv/config';
+import config from '../../config/database-config.cjs';
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
-  {
-    host: process.env.DB_HOST,
-    dialect: 'postgres', 
-    logging: false,     
-  }
-);
+const { url, ...opcoes } = config;
+
+const sequelize = url
+  ? new Sequelize(url, opcoes)
+  : new Sequelize(opcoes.database, opcoes.username, opcoes.password, opcoes);
 
 export default sequelize;

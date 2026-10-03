@@ -38,11 +38,26 @@ const User = sequelize.define('User', {
         defaultValue: 0
     },
 }, {
-    tableName: 'users', 
-    timestamps: true,      
-    createdAt: 'created_at', 
-    updatedAt: false     
+    tableName: 'users',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: false,
+    // O hash da senha nunca sai do banco por padrão (inclusive em includes).
+    // Quem precisa dele, como o login, usa User.scope('comSenha').
+    defaultScope: {
+        attributes: { exclude: ['senha_hash'] },
+    },
+    scopes: {
+        comSenha: { attributes: { include: ['senha_hash'] } },
+    },
 });
+
+// Rede de segurança: mesmo uma instância carregada com o hash (ex.: retorno
+// de User.create) não o expõe ao ser serializada em JSON.
+User.prototype.toJSON = function () {
+    const { senha_hash, ...dados } = this.get({ plain: true });
+    return dados;
+};
 
 User.beforeSave(async (user) => {
     // Só criptografa se o campo foi modificado (ou se é um novo registro)
