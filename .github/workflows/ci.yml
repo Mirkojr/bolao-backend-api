@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-e-unitarios:
+    name: Lint e testes unitários
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:unit
+
+  integracao:
+    name: Testes de integração
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: bolao
+          POSTGRES_PASSWORD: bolao
+          POSTGRES_DB: bolao_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bolao -d bolao_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: bolao
+      DB_PASS: bolao
+      DB_NAME: bolao_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:integration
+
+  docker:
+    name: Build da imagem de produção
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target prod -t bolao-backend-api .

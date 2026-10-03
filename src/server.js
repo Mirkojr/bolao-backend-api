@@ -1,33 +1,9 @@
 import './config/env.js';
-import express from 'express';
+import app from './app.js';
 import sequelize from './config/database.js';
-import router from './routes/routes.js'
-import cors from 'cors';
 import User from './models/User.js';
-import helmet from 'helmet';
-import corsMiddleware from './config/cors.js';
-
-import 'dotenv/config';
-
-const app = express();
 
 const PORT = process.env.PORT || 3000;
-
-if (process.env.NODE_ENV === 'production'){
-  app.set('trust proxy', 1);
-};
-
-// -- Segurança com helmet e rate limiter
-app.use(helmet());
-app.use(corsMiddleware);
-app.use(express.json());
-app.use(router);
-
-
-
-app.get('/', (req, res) => {
-  res.send('Voce está na API do Bolão!');
-});
 
 const startServer = async () => {
   try{

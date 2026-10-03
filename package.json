@@ -5,9 +5,10 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "lint": "eslint .",
+    "test": "vitest tests/unit",
     "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
+    "test:integration": "vitest run --config vitest.integration.config.js",
     "start": "npm run db:migrate && node src/server.js",
     "dev": "npm run db:migrate && nodemon -L src/server.js",
     "db:migrate": "sequelize-cli db:migrate",
@@ -36,8 +37,12 @@
     "sequelize-cli": "^6.6.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/cors": "^2.8.19",
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0",
     "nodemon": "^3.1.14",
+    "supertest": "^7.3.1",
     "vitest": "^4.1.11"
   }
 }

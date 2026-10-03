@@ -37,7 +37,8 @@ src/
 ├── routes/        # Rotas da API
 └── server.js      # Ponto de entrada da aplicação
 tests/
-└── unit/          # Testes unitários
+├── unit/          # Testes unitários
+└── integration/   # Testes de integração (API + PostgreSQL)
 ```
 
 ## Primeiros passos (desenvolvimento)
@@ -57,8 +58,18 @@ docker compose exec api npm run seed:reset   # opcional: popula o banco com dado
 
 ```bash
 npm install
+npm run lint
 npm run test:unit
 ```
+
+Os testes de integração sobem a API em memória (supertest) contra um PostgreSQL real e **apagam todas as tabelas** antes de cada caso. Por isso só rodam num banco cujo nome termine em `_test`. Com o banco do compose de pé:
+
+```bash
+docker compose exec postgres createdb -U admin bolao_test   # uma vez
+DB_HOST=127.0.0.1 DB_NAME=bolao_test npm run test:integration
+```
+
+As migrações são aplicadas no banco de teste automaticamente. No GitHub Actions (`.github/workflows/ci.yml`), cada push e pull request roda o lint, os testes unitários, os de integração (com um Postgres de serviço) e o build da imagem de produção.
 
 ## Instalação
 
