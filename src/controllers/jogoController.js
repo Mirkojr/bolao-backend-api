@@ -1,6 +1,7 @@
 import { Op, literal } from 'sequelize';
-import { Jogo, Time } from '../models/index.js';
+import { Jogo, Time, Palpite } from '../models/index.js';
 import { calcularPontuacaoJogo } from '../services/rankingService.js';
+import { parseGols } from '../utils/placar.js';
 
 export default {
 
@@ -204,7 +205,7 @@ export default {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { gol_a_real, gol_b_real, time_a_id, time_b_id, data_jogo, status } = req.body;
+            const { gol_a_real, gol_b_real, time_a_id, time_b_id, data_jogo, status } = req.body ?? {};
 
             const jogo = await Jogo.findByPk(id);
             if (!jogo) return res.status(404).json({ message: 'Jogo não encontrado.' });
@@ -214,20 +215,28 @@ export default {
             if (data_jogo !== undefined) jogo.data_jogo = data_jogo;
             if (status !== undefined) jogo.status = status;
 
-            const lancouPlacar =
-                gol_a_real !== undefined && gol_b_real !== undefined &&
-                gol_a_real !== null && gol_b_real !== null;
+            // null/ausente = não mexe no placar (desfazer placar ainda não é suportado)
+            const informouA = gol_a_real !== undefined && gol_a_real !== null;
+            const informouB = gol_b_real !== undefined && gol_b_real !== null;
+            const lancouPlacar = informouA || informouB;
 
+            let golsA = null;
+            let golsB = null;
             if (lancouPlacar) {
-                jogo.gol_a_real = gol_a_real;
-                jogo.gol_b_real = gol_b_real;
+                golsA = parseGols(gol_a_real);
+                golsB = parseGols(gol_b_real);
+                if (golsA === null || golsB === null) {
+                    return res.status(400).json({ message: 'Informe os dois placares como inteiros maiores ou iguais a zero.' });
+                }
+                jogo.gol_a_real = golsA;
+                jogo.gol_b_real = golsB;
                 jogo.status = 'FINALIZADO';
             }
 
             await jogo.save();
 
             if (lancouPlacar) {
-                await calcularPontuacaoJogo(jogo.id, gol_a_real, gol_b_real);
+                await calcularPontuacaoJogo(jogo.id, golsA, golsB);
             }
 
             const jogoCompleto = await Jogo.findByPk(jogo.id, {
@@ -244,8 +253,16 @@ export default {
     // DELETAR JOGO
     async delete(req, res) {
         try {
-            await Jogo.destroy({ where: { id: req.params.id } });
-            res.status(204).send();
+            const palpites = await Palpite.count({ where: { jogo_id: req.params.id } });
+            if (palpites > 0) {
+                return res.status(409).json({
+                    message: `Este jogo já tem ${palpites} palpite(s) registrado(s) e não pode ser excluído.`,
+                });
+            }
+
+            const apagados = await Jogo.destroy({ where: { id: req.params.id } });
+            if (apagados === 0) return res.status(404).json({ message: 'Jogo não encontrado.' });
+            return res.status(204).send();
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao deletar jogo' });
         }

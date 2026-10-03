@@ -108,18 +108,23 @@ export async function calcularPontuacaoJogo(jogoId, golsA, golsB) {
     }
 }
 
-//  Um palpite específico (ex.: palpite feito depois que o jogo já finalizou)
-export async function processarPalpiteIndividual(palpite, jogo) {
-    await aplicarPontosNosPalpites([palpite], jogo.gol_a_real, jogo.gol_b_real);
-    await recalcularParticipantes([palpite.participante_id]);
+// Recalcula um participante e o usuário vinculado a ele (se houver)
+export async function recalcularParticipanteEUsuario(participanteId) {
+    await recalcularParticipantes([participanteId]);
 
-    const participante = await Participante.findByPk(palpite.participante_id, {
+    const participante = await Participante.findByPk(participanteId, {
         attributes: ['user_id'],
         raw: true,
     });
     if (participante?.user_id) {
         await recalcularUsuarios([participante.user_id]);
     }
+}
+
+//  Um palpite específico (ex.: palpite feito depois que o jogo já finalizou)
+export async function processarPalpiteIndividual(palpite, jogo) {
+    await aplicarPontosNosPalpites([palpite], jogo.gol_a_real, jogo.gol_b_real);
+    await recalcularParticipanteEUsuario(palpite.participante_id);
 }
 
 // recálculo geral (todos os jogos finalizados / todos os participantes / todos os usuários)

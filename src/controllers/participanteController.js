@@ -30,32 +30,28 @@ export default {
     },
 
     // POST /:id/participantes
+    // body: { nome } para convidado avulso, ou { user_id } para vincular uma conta
     async store(req, res) {
         try {
-            const { nome } = req.body;
+            const nome = typeof req.body?.nome === 'string' ? req.body.nome.trim() : '';
+            const userId = req.body?.user_id;
             const bolaoId = req.params.id;
-            const userId = req.params.user_id;
-
-            if(!nome) return res.status(400).json({ message: "O nome do participante é obrigatório." });
 
             const bolao = await Bolao.findByPk(bolaoId);
-            
             if (!bolao) return res.status(404).json({ message: "Bolão não encontrado" });
 
-            let usuarioRegistrado = null;
+            if (userId !== undefined && userId !== null && userId !== '') {
+                const usuarioRegistrado = await User.findByPk(userId);
+                if (!usuarioRegistrado) {
+                    return res.status(404).json({ message: "Usuário não encontrado." });
+                }
 
-            if (userId && userId !== 'undefined' && userId !== 'null') {
-                usuarioRegistrado = await User.findByPk(userId);
-            }
-
-            if(usuarioRegistrado) {   
-                
                 const jaParticipa = await Participante.findOne({
                     where: { bolao_id: bolaoId, user_id: usuarioRegistrado.id }
                 });
 
                 if (jaParticipa) {
-                    return res.status(400).json({ message: `O usuário ${nome} já está neste bolão` });
+                    return res.status(400).json({ message: `O usuário ${usuarioRegistrado.nome} já está neste bolão` });
                 }
 
                 const novoParticipante = await Participante.create({
@@ -65,25 +61,27 @@ export default {
                     pontuacao_no_bolao: 0
                 });
                 return res.status(201).json(novoParticipante);
-            } else {
-
-                const jaParticipaAvulso = await Participante.findOne({
-                    where: { bolao_id: bolaoId, nome_avulso: nome }
-                });
-
-                if (jaParticipaAvulso) {
-                    return res.status(400).json({ message: `Já existe um convidado chamado ${nome} neste bolão!` });
-                }
-
-                const novoParticipanteAvulso = await Participante.create({
-                    bolao_id: bolaoId,
-                    user_id: null,
-                    nome_avulso: nome,
-                    pontuacao_no_bolao: 0
-                });
-                return res.status(201).json(novoParticipanteAvulso);
             }
+
+            if (!nome) return res.status(400).json({ message: "O nome do participante é obrigatório." });
+
+            const jaParticipaAvulso = await Participante.findOne({
+                where: { bolao_id: bolaoId, nome_avulso: nome }
+            });
+
+            if (jaParticipaAvulso) {
+                return res.status(400).json({ message: `Já existe um convidado chamado ${nome} neste bolão!` });
+            }
+
+            const novoParticipanteAvulso = await Participante.create({
+                bolao_id: bolaoId,
+                user_id: null,
+                nome_avulso: nome,
+                pontuacao_no_bolao: 0
+            });
+            return res.status(201).json(novoParticipanteAvulso);
         } catch (error) {
+            console.error("Erro ao adicionar participante:", error);
             return res.status(400).json({ message: "Erro ao adicionar participante."});
         }
     },
@@ -98,7 +96,7 @@ export default {
             });
 
             if(deletado === 0){
-                res.status(404).json({ message: "Participante não encontrado. "});
+                return res.status(404).json({ message: "Participante não encontrado. "});
             }
 
             return res.status(204).send();
