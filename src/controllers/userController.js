@@ -1,49 +1,68 @@
 import { User } from '../models/index.js'
 
+// Erros de validação/unicidade do Sequelize viram 4xx; o resto é 500.
+const responderErro = (res, error, mensagemPadrao) => {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+        return res.status(409).json({ message: "Este e-mail já está cadastrado." });
+    }
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+        return res.status(409).json({ message: "O usuário ainda tem bolões ou participações vinculadas." });
+    }
+    if (error.name === 'SequelizeValidationError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Dados inválidos." });
+    }
+    console.error(error);
+    return res.status(500).json({ message: mensagemPadrao });
+};
+
 export default{
 
     async index(req, res){
         try {
-            const users = await User.findAll({ attributes: { exclude : 'senha_hash'} });
-            res.status(200).json(users);
+            const users = await User.findAll();
+            return res.status(200).json(users);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: "Falha na busca dos usuarios."})
+            return responderErro(res, error, "Falha na busca dos usuários.");
         }
     },
 
     async show(req, res){
         try{
-            const user = await User.findByPk(req.params.id, {
-                attributes: { exclude : 'senha_hash'}
-            });
-            res.status(200).json(user);
+            const user = await User.findByPk(req.params.id);
+            if (!user) return res.status(404).json({ message: "Usuário não encontrado." });
+            return res.status(200).json(user);
         } catch(error){
-            res.status(400).json({ message:"Busca de usuario falhou "})
+            return responderErro(res, error, "Busca de usuário falhou.");
         }
     },
 
     async store(req, res){
+        const { nome, email, senha } = req.body ?? {};
+
+        if (!nome || !email || !senha) {
+            return res.status(400).json({ message: "Nome, e-mail e senha são obrigatórios." });
+        }
+
         try{
             const newUser = await User.create({
-                nome: req.body.nome,
-                email: req.body.email,
-                senha_hash: req.body.senha
+                nome,
+                email,
+                senha_hash: senha
             })
 
-            res.status(201).json(newUser);
+            return res.status(201).json(newUser);
         } catch(error){
-             res.status(400).json({message : "Inserção de usuário falhou."});
+            return responderErro(res, error, "Inserção de usuário falhou.");
         }
     },
 
-    async update (req, res){ 
+    async update (req, res){
         try {
             const user = await User.findByPk(req.params.id);
 
-            if(!user) return res.json({ message: "Esser user não existe. "});
+            if(!user) return res.status(404).json({ message: "Usuário não encontrado." });
 
-            const { nome, email, senha } = req.body;
+            const { nome, email, senha } = req.body ?? {};
 
             if (nome !== undefined) user.nome = nome;
             if (email !== undefined) user.email = email;
@@ -51,20 +70,19 @@ export default{
 
             await user.save();
 
-            const { senha_hash, ...userSafe} = user.toJSON();
-            
-            return res.status(200).json(userSafe);
+            return res.status(200).json(user);
         } catch (error) {
-            return res.status(500).send({ message: "Não foi possível atualizar o user. "});
+            return responderErro(res, error, "Não foi possível atualizar o usuário.");
         }
     },
 
-    async delete (req, res) { 
+    async delete (req, res) {
         try{
-            await User.destroy({ where: { id : req.params.id } });
-            res.status(200).json("Sucesso ao apagar usuário.");
+            const apagados = await User.destroy({ where: { id : req.params.id } });
+            if (apagados === 0) return res.status(404).json({ message: "Usuário não encontrado." });
+            return res.status(204).send();
         } catch(error){
-            res.status(204).send();
+            return responderErro(res, error, "Não foi possível apagar o usuário.");
         }
     }
 

@@ -8,7 +8,7 @@ import timeRoutes from './timeRoutes.js';
 import adminRoutes from './adminRoutes.js'
 
 import { apiLimiter, loginLimiter, writeLimiter } from '../middlewares/rateLimiterMiddleware.js';
-import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { authMiddleware, bolaoMember } from '../middlewares/authMiddleware.js';
 import { exportExcel, exportPdf } from '../controllers/exportController.js';
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.use('/boloes', bolaoRoutes);
 router.use('/jogos', jogoRoutes);
 router.use('/times', timeRoutes);
 router.use('/admin', adminRoutes);
-router.get('/boloes/:id/export/excel', authMiddleware, exportExcel);
-router.get('/boloes/:id/export/pdf', authMiddleware, exportPdf);
+router.get('/boloes/:id/export/excel', authMiddleware, bolaoMember, exportExcel);
+router.get('/boloes/:id/export/pdf', authMiddleware, bolaoMember, exportPdf);
 
 export default router;

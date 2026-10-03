@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware, adminOnly, bolaoOwner } from '../middlewares/authMiddleware.js';
+import { authMiddleware, bolaoOwner, bolaoMember } from '../middlewares/authMiddleware.js';
 
 import BolaoController from '../controllers/bolaoController.js';
 import ParticipantController from '../controllers/participanteController.js';
@@ -16,14 +16,14 @@ router.route('/')
   .post(BolaoController.store);
 
 router.route('/:id')
-  .get(BolaoController.show)
+  .get(bolaoMember, BolaoController.show)
   .put(bolaoOwner, BolaoController.update)
   .delete(bolaoOwner, BolaoController.delete);
 
 
 // --- Jogos DENTRO do Bolão ---
 router.route('/:id/jogos')
-  .get(BolaoController.getJogos);
+  .get(bolaoMember, BolaoController.getJogos);
 
 router.route('/:id/jogos/:jogoId')
   .post(bolaoOwner, BolaoController.addJogo)
@@ -32,7 +32,7 @@ router.route('/:id/jogos/:jogoId')
 
 // --- Participantes ---
 router.route('/:id/participantes')
-  .get(ParticipantController.index)
+  .get(bolaoMember, ParticipantController.index)
   .post(bolaoOwner, ParticipantController.store);
 
 router.route('/:id/participantes/:participanteId')
@@ -41,7 +41,7 @@ router.route('/:id/participantes/:participanteId')
 
 // --- Palpites ---
 router.route('/:id/palpites')
-  .get(PalpiteController.index)
+  .get(bolaoMember, PalpiteController.index)
   .post(bolaoOwner, PalpiteController.store)
   .delete(bolaoOwner, PalpiteController.delete);
 

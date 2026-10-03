@@ -8,7 +8,8 @@ export default {
                 where: { bolao_id: req.params.id },
                 include: [{
                 model: User,
-                as: 'usuario'
+                as: 'usuario',
+                attributes: ['id', 'nome'],
             }],
             order: [['pontuacao_no_bolao', 'DESC']] // ja retorna os participantes na forma de ranking
             });
