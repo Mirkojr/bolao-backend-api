@@ -6,16 +6,19 @@ const Palpite = sequelize.define('Palpite', {
     type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
+    references: { model: 'boloes', key: 'id' },
   },
   participante_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
+    references: { model: 'participantes_bolao', key: 'id' },
   },
   jogo_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
+    references: { model: 'jogos', key: 'id' },
   },
   gol_a_palpite: {
     type: DataTypes.INTEGER,

@@ -12,7 +12,7 @@ export default {
      *   page, limit          -> paginação (opt-in: só pagina se vier ?page)
      *   search               -> nome/sigla de um dos times
      *   status               -> agendado | finalizado
-     *   periodo              -> hoje | semana | futuros | passados | sem_data
+     *   periodo              -> hoje | semana | futuros | passados
      *   time_id              -> jogos em que o time joga (mandante ou visitante)
      *   sort                 -> proximos (padrão) | data_asc | data_desc | recentes
      */
@@ -67,7 +67,6 @@ export default {
                 semana: { data_jogo: { [Op.between]: [inicioDoDia, daquiUmaSemana] } },
                 futuros: { data_jogo: { [Op.gte]: agora } },
                 passados: { data_jogo: { [Op.lt]: agora } },
-                sem_data: { data_jogo: { [Op.is]: null } },
             };
             if (periodo && periodos[periodo]) filtros.push(periodos[periodo]);
 

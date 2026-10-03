@@ -2,7 +2,10 @@ import 'dotenv/config';
 
 // Variáveis sem as quais a API não funciona. Faltando alguma, é melhor
 // parar na inicialização do que falhar depois, no meio de uma requisição.
-const OBRIGATORIAS = ['ACCESS_TOKEN_KEY', 'DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS'];
+// O banco vem de DATABASE_URL ou, na falta dela, de DB_* (ver config/database-config.cjs).
+const OBRIGATORIAS = process.env.DATABASE_URL
+  ? ['ACCESS_TOKEN_KEY']
+  : ['ACCESS_TOKEN_KEY', 'DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS'];
 
 const faltando = OBRIGATORIAS.filter((nome) => !process.env[nome]);
 

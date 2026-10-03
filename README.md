@@ -148,9 +148,10 @@ As rotas são protegidas por middleware de autenticação (JWT) e, em alguns cas
 
 ## Fluxo de inicialização
 
-Ao iniciar, a aplicação:
+Ao iniciar (`npm start` ou `npm run dev`), a aplicação:
 
-- confere se as variáveis obrigatórias (`ACCESS_TOKEN_KEY` e `DB_*`) estão definidas, e encerra com uma mensagem clara se faltar alguma
+- aplica as migrações pendentes do banco (`npm run db:migrate`)
+- confere se as variáveis obrigatórias (`ACCESS_TOKEN_KEY` e `DATABASE_URL` ou `DB_*`) estão definidas, e encerra com uma mensagem clara se faltar alguma
 - conecta ao PostgreSQL com Sequelize
 - garante a criação de um usuário administrador padrão (a partir de `ADMIN_*`), caso ainda não exista
 - sobe o servidor HTTP na porta definida em `PORT`
@@ -159,7 +160,30 @@ Se qualquer etapa falhar, o processo encerra com código 1.
 
 ## Banco de dados
 
-O projeto usa um volume do Docker para persistir os dados do PostgreSQL e executa os scripts da pasta `database/` na primeira inicialização do container.
+O schema é versionado em migrações (`migrations/`, com `sequelize-cli`). Elas rodam automaticamente antes de a API subir, tanto no `npm start` quanto no `npm run dev`, então um banco vazio é criado e um banco existente recebe só o que falta. O volume do Docker persiste os dados do PostgreSQL.
+
+```bash
+npm run db:migrate          # aplica as migrações pendentes
+npm run db:migrate:status   # lista o que já foi aplicado
+npm run db:migrate:undo     # desfaz a última
+```
+
+Para mudar o schema, crie uma nova migração em `migrations/` (nunca edite uma que já rodou em produção):
+
+```bash
+npx sequelize-cli migration:generate --name descricao-da-mudanca
+```
+
+O arquivo é gerado como `.js`; renomeie para `.cjs`, como os demais (o projeto usa ES modules).
+
+### Conexão
+
+A API e o `sequelize-cli` leem a mesma configuração (`config/database-config.cjs`):
+
+- `DATABASE_URL`, se definida (ex.: a URL externa do Render); senão
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASS`.
+
+O SSL fica ligado por padrão com `DATABASE_URL` e desligado com `DB_*`. Use `DB_SSL=true` ou `DB_SSL=false` para forçar.
 
 ## Integração com o frontend
 
